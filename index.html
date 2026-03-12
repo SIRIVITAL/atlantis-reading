@@ -1,0 +1,1905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atlantis Language Mission</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Nunito:wght@400;600;700;800&display=swap');
+  :root{--deep:#050d1a;--ocean:#0a2a4a;--mid:#0e4d7a;--teal:#0fa8a8;--gold:#f0c040;--coral:#ff6b6b;--mint:#a8f0e0;--white:#f0f8ff;--glass:rgba(10,60,100,0.55);--radius:16px;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Nunito',sans-serif;background:var(--deep);color:var(--white);min-height:100vh;overflow-x:hidden;}
+  .ocean-bg{position:fixed;inset:0;z-index:0;background:radial-gradient(ellipse at 20% 80%,#0a3060 0%,#050d1a 60%),radial-gradient(ellipse at 80% 20%,#092040 0%,transparent 60%);}
+  .bubbles{position:fixed;inset:0;z-index:1;pointer-events:none;}
+  .bubble{position:absolute;border-radius:50%;background:rgba(15,168,168,0.12);animation:rise linear infinite;}
+  @keyframes rise{from{transform:translateY(110vh) scale(0.5);opacity:0;}20%{opacity:1;}to{transform:translateY(-10vh) scale(1.2);opacity:0;}}
+  .app{position:relative;z-index:10;max-width:820px;margin:0 auto;padding:20px 16px 60px;}
+  /* Header */
+  .header{text-align:center;padding:32px 20px 24px;}
+  .header-badge{display:inline-block;background:linear-gradient(135deg,var(--teal),var(--mid));border-radius:40px;padding:4px 18px;font-size:11px;letter-spacing:2px;text-transform:uppercase;font-weight:800;color:var(--mint);margin-bottom:12px;}
+  .header h1{font-family:'Cinzel',serif;font-size:clamp(28px,6vw,52px);font-weight:900;background:linear-gradient(135deg,var(--gold) 0%,var(--mint) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1;letter-spacing:1px;}
+  .header p{color:rgba(168,240,224,0.75);font-size:14px;margin-top:8px;font-weight:600;}
+  /* HUD */
+  .hud{display:flex;align-items:center;gap:12px;background:var(--glass);backdrop-filter:blur(10px);border:1px solid rgba(15,168,168,0.3);border-radius:var(--radius);padding:12px 20px;margin-bottom:24px;}
+  .score-badge{background:linear-gradient(135deg,var(--gold),#d49000);color:var(--deep);font-family:'Cinzel',serif;font-weight:700;font-size:13px;border-radius:30px;padding:6px 16px;white-space:nowrap;flex-shrink:0;}
+  .progress-wrap{flex:1;}
+  .progress-label{font-size:11px;color:var(--mint);font-weight:700;margin-bottom:5px;}
+  .progress-bar-outer{background:rgba(255,255,255,0.08);border-radius:20px;height:12px;overflow:hidden;}
+  .progress-bar-inner{background:linear-gradient(90deg,var(--teal),var(--gold));height:100%;border-radius:20px;transition:width 0.5s ease;}
+  .section-dots{display:flex;gap:6px;justify-content:center;margin-top:8px;}
+  .dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.15);transition:background 0.3s;border:2px solid rgba(15,168,168,0.4);}
+  .dot.done{background:var(--teal);}.dot.active{background:var(--gold);}
+  /* Cards */
+  .section-card{background:var(--glass);backdrop-filter:blur(12px);border:1px solid rgba(15,168,168,0.25);border-radius:24px;padding:28px 24px;margin-bottom:20px;display:none;animation:fadeUp 0.4s ease;}
+  .section-card.active{display:block;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+  .section-num{font-family:'Cinzel',serif;font-size:11px;letter-spacing:3px;color:var(--teal);text-transform:uppercase;font-weight:700;margin-bottom:6px;}
+  .section-title{font-family:'Cinzel',serif;font-size:20px;font-weight:700;color:var(--gold);margin-bottom:16px;}
+  /* Activity */
+  .activity{background:rgba(5,13,26,0.5);border-radius:var(--radius);border:1px solid rgba(15,168,168,0.15);padding:20px;margin-bottom:16px;}
+  .activity-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+  .activity-icon{font-size:22px;}.activity-title{font-size:15px;font-weight:800;color:var(--mint);}
+  .activity-pts{margin-left:auto;font-size:11px;color:var(--gold);font-weight:700;}
+  /* Bilingual instructions */
+  .instr{font-size:13px;margin-bottom:12px;line-height:1.6;}
+  .instr-en{color:var(--mint);font-weight:700;}
+  .instr-he{color:rgba(168,240,224,0.65);font-size:12px;direction:rtl;display:block;text-align:right;margin-top:2px;}
+  /* Buttons */
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:30px;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-size:14px;font-weight:800;transition:all 0.2s;}
+  .btn-primary{background:linear-gradient(135deg,var(--teal),var(--mid));color:var(--white);}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(15,168,168,0.4);}
+  .btn-gold{background:linear-gradient(135deg,var(--gold),#c8860a);color:var(--deep);}
+  .btn-coral{background:linear-gradient(135deg,var(--coral),#c0392b);color:var(--white);}
+  .btn:disabled{opacity:0.4;cursor:not-allowed;transform:none!important;}
+  .btn-sm{padding:7px 16px;font-size:13px;}
+  .btn-next{background:linear-gradient(135deg,var(--gold),var(--teal));color:var(--deep);font-size:15px;padding:12px 32px;margin-top:10px;border-radius:30px;border:none;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:900;transition:all 0.2s;display:none;}
+  .btn-next.show{display:inline-flex;align-items:center;gap:8px;}
+  .btn-next:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(240,192,64,0.4);}
+  /* Story text */
+  .story-text{background:rgba(5,13,26,0.6);border-left:3px solid var(--teal);border-radius:0 12px 12px 0;padding:16px 20px;font-size:16px;line-height:2.0;color:var(--white);margin-bottom:12px;}
+  .story-text .word{display:inline;transition:background 0.15s;border-radius:3px;padding:1px 2px;}
+  .story-text .word.highlight{background:rgba(240,192,64,0.5);color:var(--deep);font-weight:700;}
+  /* Slider */
+  .slider-track-wrap{margin:10px 0 4px;}
+  .slider-track-label{font-size:12px;color:var(--mint);font-weight:700;margin-bottom:6px;}
+  .slider-track{width:100%;-webkit-appearance:none;appearance:none;height:18px;border-radius:10px;outline:none;cursor:pointer;background:rgba(255,255,255,0.12);touch-action:none;}
+  .slider-track::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--coral));cursor:grab;border:3px solid var(--white);box-shadow:0 0 12px rgba(240,192,64,0.7);}
+  .slider-track::-moz-range-thumb{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--coral));cursor:grab;border:3px solid var(--white);}
+  .slider-score-area{font-size:13px;font-weight:700;margin-top:8px;min-height:22px;}
+  .slider-progress-bar{width:100%;height:6px;background:rgba(255,255,255,0.1);border-radius:6px;margin-top:6px;overflow:hidden;}
+  .slider-progress-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--gold));border-radius:6px;transition:width 0.3s ease;width:0%;}
+  /* Vocab */
+  .vocab-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+  .vocab-col{display:flex;flex-direction:column;gap:8px;}
+  .vocab-item{padding:9px 14px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;user-select:none;transition:all 0.2s;border:2px solid transparent;}
+  .vocab-en{background:rgba(14,77,122,0.7);color:var(--white);border-color:rgba(15,168,168,0.3);}
+  .vocab-en:hover{border-color:var(--teal);}
+  .vocab-en.selected{border-color:var(--gold);background:rgba(14,77,122,1);}
+  .vocab-en.matched{background:rgba(15,168,168,0.2);border-color:var(--teal);cursor:default;opacity:0.7;}
+  .vocab-he{background:rgba(5,40,70,0.8);color:var(--mint);border-color:rgba(168,240,224,0.15);text-align:right;direction:rtl;}
+  .vocab-he:hover{border-color:var(--mint);}
+  .vocab-he.selected{border-color:var(--gold);background:rgba(5,40,70,1);}
+  .vocab-he.matched{background:rgba(15,168,168,0.15);border-color:var(--teal);cursor:default;opacity:0.7;}
+  /* Cloze */
+  .cloze-full-text{background:rgba(5,13,26,0.6);border-radius:12px;padding:16px 18px;font-size:16px;line-height:2.6;margin-bottom:14px;}
+  .blank{display:inline-block;min-width:90px;border-bottom:3px solid var(--teal);text-align:center;padding:0 8px;font-weight:800;color:var(--gold);cursor:pointer;transition:border-color 0.2s;}
+  .blank:hover{border-color:var(--gold);}
+  .blank.correct{color:#4ade80;border-color:#4ade80;}
+  .blank.wrong{color:var(--coral);border-color:var(--coral);}
+  .word-bank{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+  .wb-word{padding:6px 14px;border-radius:20px;background:rgba(15,168,168,0.15);border:2px solid rgba(15,168,168,0.4);font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;color:var(--white);}
+  .wb-word:hover{background:rgba(15,168,168,0.35);border-color:var(--teal);}
+  .wb-word.used{opacity:0.3;cursor:not-allowed;text-decoration:line-through;}
+  /* Quiz */
+  .quiz-q{font-size:15px;font-weight:700;color:var(--white);margin-bottom:10px;line-height:1.5;}
+  .quiz-opts{display:flex;flex-direction:column;gap:7px;margin-bottom:10px;}
+  .quiz-opt{padding:10px 16px;border-radius:10px;background:rgba(14,77,122,0.5);border:2px solid rgba(15,168,168,0.2);font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .quiz-opt:hover:not(.disabled){border-color:var(--teal);background:rgba(14,77,122,0.8);}
+  .quiz-opt.correct{background:rgba(74,222,128,0.15);border-color:#4ade80;color:#4ade80;}
+  .quiz-opt.wrong{background:rgba(255,107,107,0.15);border-color:var(--coral);color:var(--coral);}
+  .quiz-opt.disabled{cursor:default;}
+  .read-btn{background:none;border:1px solid rgba(15,168,168,0.4);border-radius:20px;padding:3px 9px;font-size:11px;color:var(--teal);cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700;flex-shrink:0;}
+  .read-btn:hover{background:rgba(15,168,168,0.2);}
+  /* Translation */
+  .trans-src{background:rgba(5,13,26,0.6);border-radius:10px;padding:12px 16px;font-size:16px;font-style:italic;color:var(--gold);margin-bottom:12px;}
+  textarea.trans-input{width:100%;border-radius:10px;padding:12px 14px;background:rgba(5,13,26,0.7);border:2px solid rgba(15,168,168,0.3);color:var(--white);font-family:'Nunito',sans-serif;font-size:15px;resize:vertical;min-height:70px;direction:rtl;transition:border-color 0.2s;}
+  textarea.trans-input:focus{outline:none;border-color:var(--teal);}
+  .model-answer{background:rgba(15,168,168,0.1);border:1px solid rgba(15,168,168,0.3);border-radius:10px;padding:12px 14px;margin-top:10px;font-size:14px;color:var(--mint);display:none;direction:rtl;text-align:right;}
+  .model-answer strong{color:var(--gold);direction:ltr;display:block;text-align:left;font-size:12px;margin-bottom:4px;}
+  /* Recording */
+  .speak-text{background:rgba(5,13,26,0.6);border-radius:10px;padding:14px 16px;font-size:16px;color:var(--white);line-height:1.8;margin-bottom:12px;border-left:3px solid var(--gold);}
+  .speak-text[dir="rtl"]{border-left:none;border-right:3px solid var(--gold);direction:rtl;font-size:17px;}
+  .record-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .rec-status{font-size:13px;color:var(--mint);font-weight:600;}
+  .rec-dot{width:10px;height:10px;border-radius:50%;background:var(--coral);display:none;animation:pulse 1s infinite;}
+  .rec-dot.show{display:inline-block;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+  audio.playback{width:100%;margin-top:10px;border-radius:30px;display:none;}
+  audio.playback.show{display:block;}
+  .encourage{margin-top:10px;padding:10px 14px;border-radius:10px;font-size:14px;font-weight:700;display:none;}
+  .encourage.show{display:block;}
+  .encourage.good{background:rgba(74,222,128,0.15);color:#4ade80;}
+  .encourage.try{background:rgba(240,192,64,0.15);color:var(--gold);}
+  /* Feedback */
+  .feedback{margin-top:10px;padding:10px 14px;border-radius:10px;font-size:14px;font-weight:700;}
+  .feedback.correct{background:rgba(74,222,128,0.15);color:#4ade80;}
+  .feedback.wrong{background:rgba(255,107,107,0.15);color:var(--coral);}
+  .feedback.info{background:rgba(15,168,168,0.15);color:var(--mint);}
+  /* Games */
+  .game-card{background:linear-gradient(135deg,rgba(14,77,122,0.7),rgba(5,40,70,0.9));border:2px solid var(--gold);border-radius:20px;padding:24px;margin-bottom:20px;}
+  .game-title{font-family:'Cinzel',serif;font-size:18px;color:var(--gold);margin-bottom:4px;text-align:center;}
+  .game-sub{font-size:12px;color:var(--mint);text-align:center;margin-bottom:14px;}
+  .game-sub-he{font-size:11px;color:rgba(168,240,224,0.6);text-align:center;direction:rtl;margin-bottom:14px;}
+  .game-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+  .fc{height:64px;border-radius:10px;cursor:pointer;border:2px solid rgba(15,168,168,0.4);background:rgba(14,77,122,0.6);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;text-align:center;padding:4px;transition:all 0.3s;user-select:none;}
+  .fc:hover:not(.fc-flipped):not(.fc-matched){transform:scale(1.05);border-color:var(--teal);}
+  .fc.fc-flipped{background:rgba(14,77,122,1);border-color:var(--gold);color:var(--gold);}
+  .fc.fc-matched{background:rgba(15,168,168,0.2);border-color:#4ade80;color:#4ade80;cursor:default;}
+  .fc.fc-wrong{background:rgba(255,107,107,0.2);border-color:var(--coral);color:var(--coral);}
+  .game-score{text-align:center;font-size:14px;color:var(--mint);font-weight:700;margin-top:12px;}
+  .scramble-word{font-family:'Cinzel',serif;font-size:28px;color:var(--gold);text-align:center;letter-spacing:8px;margin:12px 0;}
+  .scramble-input{width:100%;border-radius:10px;padding:10px 14px;background:rgba(5,13,26,0.7);border:2px solid rgba(15,168,168,0.3);color:var(--white);font-family:'Nunito',sans-serif;font-size:16px;text-align:center;}
+  .scramble-input:focus{outline:none;border-color:var(--gold);}
+  /* Mission complete */
+  #mission-complete{display:none;text-align:center;padding:40px 20px;background:var(--glass);backdrop-filter:blur(12px);border:1px solid rgba(240,192,64,0.4);border-radius:24px;}
+  #mission-complete.show{display:block;}
+  .trophy{font-size:72px;margin-bottom:16px;animation:bounce 1s ease infinite alternate;}
+  @keyframes bounce{from{transform:translateY(0);}to{transform:translateY(-12px);}}
+  #mission-complete h2{font-family:'Cinzel',serif;font-size:32px;font-weight:900;background:linear-gradient(135deg,var(--gold),var(--mint));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:10px;}
+  .final-score-big{font-size:48px;font-family:'Cinzel',serif;color:var(--gold);font-weight:700;margin:16px 0;}
+  .stars{font-size:32px;margin:10px 0;}
+  .report-box{background:rgba(5,13,26,0.6);border:1px solid rgba(15,168,168,0.3);border-radius:12px;padding:18px;margin-top:20px;text-align:left;}
+  .report-box h3{color:var(--gold);font-size:15px;margin-bottom:14px;text-align:center;}
+  .report-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(15,168,168,0.1);font-size:13px;}
+  .report-row:last-child{border:none;}
+  .report-label{color:var(--mint);font-weight:700;}
+  .report-val{color:var(--white);text-align:right;}
+  .score-100{font-size:32px;font-family:'Cinzel',serif;color:var(--gold);text-align:center;margin:12px 0;}
+  textarea#share-text{width:100%;border-radius:8px;padding:8px 12px;background:rgba(5,13,26,0.7);border:1px solid rgba(15,168,168,0.3);color:var(--mint);font-size:12px;margin-top:10px;resize:none;}
+  /* Name input */
+  .name-row{background:rgba(5,13,26,0.5);border-radius:12px;padding:12px 16px;margin-bottom:20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .name-row label{color:var(--mint);font-weight:700;font-size:13px;white-space:nowrap;}
+  .name-row input{flex:1;border-radius:8px;padding:8px 12px;background:rgba(5,13,26,0.7);border:2px solid rgba(15,168,168,0.3);color:var(--white);font-family:'Nunito',sans-serif;font-size:14px;min-width:150px;}
+  .name-row input:focus{outline:none;border-color:var(--teal);}
+  /* Mobile-friendly slider — extra large thumb for touch */
+  @media (max-width: 600px) {
+    .slider-track{height:20px;}
+    .slider-track::-webkit-slider-thumb{width:52px;height:52px;}
+    .slider-track::-moz-range-thumb{width:52px;height:52px;}
+    .btn{padding:12px 18px;font-size:15px;}
+    .btn-sm{padding:10px 16px;font-size:14px;}
+    .vocab-item{padding:12px 10px;font-size:13px;}
+    .quiz-opt{padding:13px 14px;}
+    .record-controls{gap:8px;}
+    audio.playback{margin-top:8px;}
+  }
+  /* Prevent text selection during slider drag — touch-action:none lets the thumb capture touch without the page scrolling */
+  .slider-track{touch-action:none;-webkit-appearance:none;appearance:none;}
+  .slider-track::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--coral));cursor:grab;border:3px solid var(--white);box-shadow:0 0 12px rgba(240,192,64,0.7);}
+  .slider-track::-moz-range-thumb{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--coral));cursor:grab;border:3px solid var(--white);}
+  .flex-gap{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+  .mt8{margin-top:8px;}.mt12{margin-top:12px;}
+  .hidden{display:none!important;}
+  .final-record-text{background:rgba(5,13,26,0.6);border-left:3px solid var(--gold);border-radius:0 12px 12px 0;padding:16px 20px;font-size:16px;line-height:1.9;color:var(--white);margin-bottom:12px;}
+  /* Mobile */
+  @media(max-width:600px){
+    .btn{padding:12px 18px;font-size:15px;}
+    .btn-sm{padding:11px 16px;font-size:14px;min-height:44px;}
+    .vocab-item{padding:13px 10px;font-size:13px;min-height:44px;}
+    .quiz-opt{padding:13px 14px;min-height:44px;}
+    .activity{padding:16px 12px;}
+    .section-card{padding:20px 12px;}
+    .wb-word{padding:11px 14px;font-size:14px;min-height:44px;}
+    .record-controls{flex-wrap:wrap;gap:8px;}
+    .record-controls .btn{flex:1 1 140px;justify-content:center;}
+    input[type="range"]{min-height:44px;}
+    .story-text{font-size:15px;line-height:2.2;}
+  }
+</style>
+</head>
+<body>
+<div class="ocean-bg"></div>
+<div class="bubbles" id="bubbles"></div>
+<div class="app">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-badge">🌊 ESL Language Mission</div>
+    <h1>ATLANTIS<br>LANGUAGE MISSION</h1>
+    <p>Explore the ancient mystery — and master every word along the way.</p>
+  </div>
+
+  <!-- Student name -->
+  <div class="name-row">
+    <label>👤 Your name / שמך:</label>
+    <input type="text" id="student-name" placeholder="Enter your name..." oninput="saveProgress()">
+    <span style="font-size:11px;color:rgba(168,240,224,0.4);">💾 Progress saved automatically / ההתקדמות נשמרת אוטומטית</span>
+  </div>
+
+  <!-- HUD -->
+  <div class="hud">
+    <div class="score-badge">⭐ <span id="score-display">0</span> pts</div>
+    <div class="progress-wrap">
+      <div class="progress-label">Mission Progress — Section <span id="cur-section">1</span> of 4</div>
+      <div class="progress-bar-outer"><div class="progress-bar-inner" id="progress-bar" style="width:0%"></div></div>
+      <div class="section-dots" id="section-dots"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════ SECTION 1 ══════════════ -->
+  <div class="section-card active" id="sec1">
+    <div class="section-num">Section 1 · The Mystery / המסתורין</div>
+    <div class="section-title">The Lost City of Atlantis / העיר האבודה אטלנטיס</div>
+
+    <!-- VOCAB -->
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">🔤</span><span class="activity-title">Vocab Match</span><span class="activity-pts">+1 pt each</span></div>
+      <div class="instr"><span class="instr-en">Click an English word, then its Hebrew match.</span><span class="instr-he">לחץ על מילה באנגלית ואחר כך על התרגום שלה בעברית.</span></div>
+      <div class="vocab-grid"><div class="vocab-col" id="v1-en"></div><div class="vocab-col" id="v1-he"></div></div>
+      <div id="vocab1-feedback"></div>
+    </div>
+
+    <!-- LISTENING -->
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">🎧</span><span class="activity-title">Dramatic Listening</span><span class="activity-pts">+2 pts</span></div>
+      <div class="instr"><span class="instr-en">Press Listen. As the story is read, drag the slider to follow along word by word. Try to reach the end!</span><span class="instr-he">לחץ האזן. כשהסיפור נקרא, גרור את הפס הגלילה כדי לעקוב אחר כל מילה. נסה להגיע לסוף!</span></div>
+      <button class="btn btn-primary btn-sm" onclick="listenSection(1)" id="listen-btn1">🎧 Listen / האזן</button>
+      <div id="story1" class="story-text" style="margin-top:12px;"></div>
+      <div class="hidden" id="slider-wrap1"><!-- built dynamically by buildSliderRows --></div>
+    </div>
+
+    <!-- CLOZE -->
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">✏️</span><span class="activity-title">Fill in the Blanks</span><span class="activity-pts">+3 pts total</span></div>
+      <div class="instr"><span class="instr-en">Click a word from the bank below, then click a blank to fill it in.</span><span class="instr-he">לחץ על מילה מהבנק למטה, ואחר כך לחץ על הרווח הריק כדי למלא אותו.</span></div>
+      <div class="cloze-full-text" id="cloze1-sentence"></div>
+      <div class="word-bank" id="wb1"></div>
+      <div id="cloze1-feedback"></div>
+      <div class="mt8 hidden" id="cloze1-relisten"><button class="btn btn-primary btn-sm" onclick="relistenCloze(1)">🎧 Listen Again / האזן שוב</button></div>
+    </div>
+
+    <!-- MINI GAME 1 -->
+    <div class="game-card">
+      <div class="game-title">🎮 Memory Match!</div>
+      <div class="game-sub">Find all English↔Hebrew pairs! / מצא את כל הזוגות אנגלית↔עברית!</div>
+      <div class="game-grid" id="game1-grid"></div>
+      <div class="game-score" id="game1-score">Pairs found: 0/5</div>
+    </div>
+
+    <!-- QUIZ -->
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">❓</span><span class="activity-title">Quick Quiz</span><span class="activity-pts">+1 pt each</span></div>
+      <div class="instr"><span class="instr-en">Choose the correct answer. You can press 🔊 to hear the question or answer read aloud.</span><span class="instr-he">בחר את התשובה הנכונה. ניתן ללחוץ על 🔊 כדי לשמוע את השאלה או התשובה.</span></div>
+      <div id="quiz1-content"></div>
+    </div>
+
+    <div class="activity" id="listen2-activity-1" style="border:2px solid rgba(15,168,168,0.4);">
+      <div class="activity-header"><span class="activity-icon">🎧</span><span class="activity-title">Second Listening — Required</span><span class="activity-pts">+2 pts</span></div>
+      <div class="instr"><span class="instr-en">Listen to the section again before continuing. This is required!</span><span class="instr-he">האזן לחלק שוב לפני שממשיכים. זה חובה!</span></div>
+      <button class="btn btn-primary btn-sm" onclick="doListen2(1)" id="listen2-btn1">🎧 Listen Again / האזן שוב</button>
+      <div id="listen2-status1" style="margin-top:8px;font-size:13px;font-weight:700;min-height:20px;"></div>
+    </div>
+
+    <!-- TRANSLATION -->
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">🌐</span><span class="activity-title">Translation Challenge</span><span class="activity-pts">+2 pts</span></div>
+      <div class="instr"><span class="instr-en">Translate the sentence below into Hebrew.</span><span class="instr-he">תרגם את המשפט הבא לעברית.</span></div>
+      <div class="trans-src">"The Lost City of Atlantis is one of the greatest mysteries in the world."</div>
+      <textarea class="trans-input" id="trans1-input" placeholder="כתוב את התרגום שלך כאן..."></textarea>
+      <div class="mt8 flex-gap">
+        <button class="btn btn-primary btn-sm" onclick="submitTrans(1)">Submit / שלח</button>
+      </div>
+      <div class="model-answer" id="ma1"><strong>✅ Model Answer / תשובה לדוגמה:</strong>העיר האבודה אטלנטיס היא אחת התעלומות העתיקות והגדולות ביותר בעולם.</div>
+    </div>
+
+    <!-- SPEAKING -->
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">🎤</span><span class="activity-title">Record Yourself Reading</span><span class="activity-pts">+2 pts</span></div>
+      <div class="instr"><span class="instr-en">Read the text aloud and record yourself. Your recording will be sent to your teacher for grading.</span><span class="instr-he">קרא את הטקסט בקול רם והקלט את עצמך. ההקלטה תישלח למורה לבדיקה.</span></div>
+      <div class="speak-text">The Lost City of Atlantis is one of the oldest and greatest mysteries in the world.</div>
+      <div class="record-controls">
+        <button class="btn btn-coral btn-sm" onclick="startRec('rec1')">⏺ Record / הקלט</button>
+        <button class="btn btn-primary btn-sm" onclick="stopRec('rec1')" id="stop-rec1" disabled>⏹ Stop / עצור</button>
+        <span class="rec-dot" id="dot-rec1"></span>
+        <span class="rec-status" id="status-rec1">Press Record to start</span>
+      </div>
+      <audio class="playback" id="playback-rec1" controls></audio>
+      <div class="encourage" id="enc-rec1"></div>
+    </div>
+
+    <!-- REVERSE SPEAKING -->
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">🔁</span><span class="activity-title">Reverse Speaking — Full Section</span><span class="activity-pts">+1 pt</span></div>
+      <div class="instr"><span class="instr-en">Look at the Hebrew text. Say the FULL English version aloud, then record yourself.</span><span class="instr-he">הסתכל על הטקסט בעברית. אמור את הגרסה המלאה באנגלית בקול רם, ואז הקלט את עצמך.</span></div>
+      <div class="speak-text" dir="rtl">העיר האבודה אטלנטיס היא אחת התעלומות העתיקות והגדולות ביותר בעולם. זוהי תעלומה עתיקה ומופלאה.</div>
+      <div class="record-controls mt8">
+        <button class="btn btn-coral btn-sm" onclick="startRec('rev1')">⏺ Record / הקלט</button>
+        <button class="btn btn-primary btn-sm" onclick="stopRec('rev1')" id="stop-rev1" disabled>⏹ Stop / עצור</button>
+        <span class="rec-dot" id="dot-rev1"></span>
+        <span class="rec-status" id="status-rev1">Press Record to start</span>
+      </div>
+      <audio class="playback" id="playback-rev1" controls></audio>
+      <div class="encourage" id="enc-rev1"></div>
+    </div>
+
+    <div style="text-align:center;margin-top:20px;">
+      <button class="btn-next" id="next1" onclick="tryGoSection(2)">Next Section → / לחלק הבא →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════ SECTION 2 ══════════════ -->
+  <div class="section-card" id="sec2">
+    <div class="section-num">Section 2 · The Island / האי</div>
+    <div class="section-title">What Was Atlantis? / מה הייתה אטלנטיס?</div>
+
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">🔤</span><span class="activity-title">Vocab Match</span><span class="activity-pts">+1 pt each</span></div>
+      <div class="instr"><span class="instr-en">Click an English word, then its Hebrew match.</span><span class="instr-he">לחץ על מילה באנגלית ואחר כך על התרגום שלה בעברית.</span></div>
+      <div class="vocab-grid"><div class="vocab-col" id="v2-en"></div><div class="vocab-col" id="v2-he"></div></div>
+      <div id="vocab2-feedback"></div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">🎧</span><span class="activity-title">Dramatic Listening</span><span class="activity-pts">+2 pts</span></div>
+      <div class="instr"><span class="instr-en">Press Listen. Drag the slider to follow the reading.</span><span class="instr-he">לחץ האזן. גרור את הפס הגלילה כדי לעקוב אחרי הקריאה.</span></div>
+      <button class="btn btn-primary btn-sm" onclick="listenSection(2)" id="listen-btn2">🎧 Listen / האזן</button>
+      <div id="story2" class="story-text" style="margin-top:12px;"></div>
+      <div class="hidden" id="slider-wrap2"><!-- built dynamically --></div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">✏️</span><span class="activity-title">Fill in the Blanks</span><span class="activity-pts">+3 pts total</span></div>
+      <div class="instr"><span class="instr-en">Click a word from the bank, then click a blank.</span><span class="instr-he">לחץ על מילה מהבנק, ואז לחץ על הרווח הריק.</span></div>
+      <div class="cloze-full-text" id="cloze2-sentence"></div>
+      <div class="word-bank" id="wb2"></div>
+      <div id="cloze2-feedback"></div>
+      <div class="mt8 hidden" id="cloze2-relisten"><button class="btn btn-primary btn-sm" onclick="relistenCloze(2)">🎧 Listen Again / האזן שוב</button></div>
+    </div>
+
+    <div class="game-card">
+      <div class="game-title">🎮 Word Scramble!</div>
+      <div class="game-sub">Unscramble the word! / פענח את המילה!</div>
+      <div id="game2-content"></div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">❓</span><span class="activity-title">Quick Quiz</span><span class="activity-pts">+1 pt each</span></div>
+      <div class="instr"><span class="instr-en">Choose the correct answer. Press 🔊 to hear it read aloud.</span><span class="instr-he">בחר את התשובה הנכונה. לחץ 🔊 לשמוע בקול.</span></div>
+      <div id="quiz2-content"></div>
+    </div>
+
+    <div class="activity" id="listen2-activity-2" style="border:2px solid rgba(15,168,168,0.4);">
+      <div class="activity-header"><span class="activity-icon">🎧</span><span class="activity-title">Second Listening — Required</span><span class="activity-pts">+2 pts</span></div>
+      <div class="instr"><span class="instr-en">Listen to the section again before continuing. This is required!</span><span class="instr-he">האזן לחלק שוב לפני שממשיכים. זה חובה!</span></div>
+      <button class="btn btn-primary btn-sm" onclick="doListen2(2)" id="listen2-btn2">🎧 Listen Again / האזן שוב</button>
+      <div id="listen2-status2" style="margin-top:8px;font-size:13px;font-weight:700;min-height:20px;"></div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">🌐</span><span class="activity-title">Translation Challenge</span><span class="activity-pts">+2 pts</span></div>
+      <div class="instr"><span class="instr-en">Translate into Hebrew.</span><span class="instr-he">תרגם לעברית.</span></div>
+      <div class="trans-src">"It was an island filled with peace and happiness."</div>
+      <textarea class="trans-input" id="trans2-input" placeholder="כתוב את התרגום שלך כאן..."></textarea>
+      <div class="mt8"><button class="btn btn-primary btn-sm" onclick="submitTrans(2)">Submit / שלח</button></div>
+      <div class="model-answer" id="ma2"><strong>✅ Model Answer:</strong>זה היה אי מלא בשלום ואושר.</div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">🎤</span><span class="activity-title">Record Yourself</span><span class="activity-pts">+2 pts</span></div>
+      <div class="instr"><span class="instr-en">Read aloud and record. Your teacher will listen and grade it.</span><span class="instr-he">קרא בקול רם והקלט. המורה תאזין ותדרג.</span></div>
+      <div class="speak-text">Atlantis was a large island to the south of Spain. People wrote about it over 2,000 years ago. They said it was an island filled with peace and happiness.</div>
+      <div class="record-controls">
+        <button class="btn btn-coral btn-sm" onclick="startRec('rec2')">⏺ Record / הקלט</button>
+        <button class="btn btn-primary btn-sm" onclick="stopRec('rec2')" id="stop-rec2" disabled>⏹ Stop / עצור</button>
+        <span class="rec-dot" id="dot-rec2"></span><span class="rec-status" id="status-rec2">Press Record to start</span>
+      </div>
+      <audio class="playback" id="playback-rec2" controls></audio>
+      <div class="encourage" id="enc-rec2"></div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">🔁</span><span class="activity-title">Reverse Speaking — Full Section</span><span class="activity-pts">+1 pt</span></div>
+      <div class="instr"><span class="instr-en">Look at the Hebrew text. Say the FULL English version aloud, then record.</span><span class="instr-he">הסתכל על הטקסט בעברית. אמור את הגרסה המלאה באנגלית, ואז הקלט.</span></div>
+      <div class="speak-text" dir="rtl">אטלנטיס הייתה אי גדול מדרום לספרד. אנשים כתבו עליו לפני יותר מ-2,000 שנה. הם אמרו שהיא הייתה אי מלאה בשלום ואושר.</div>
+      <div class="record-controls mt8">
+        <button class="btn btn-coral btn-sm" onclick="startRec('rev2')">⏺ Record / הקלט</button>
+        <button class="btn btn-primary btn-sm" onclick="stopRec('rev2')" id="stop-rev2" disabled>⏹ Stop / עצור</button>
+        <span class="rec-dot" id="dot-rev2"></span><span class="rec-status" id="status-rev2">Press Record to start</span>
+      </div>
+      <audio class="playback" id="playback-rev2" controls></audio>
+      <div class="encourage" id="enc-rev2"></div>
+    </div>
+
+    <div style="text-align:center;margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="goBack(1)" style="font-size:13px;padding:10px 22px;">← Back / חזור</button>
+      <button class="btn-next" id="next2" onclick="tryGoSection(3)">Next Section → / לחלק הבא →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════ SECTION 3 ══════════════ -->
+  <div class="section-card" id="sec3">
+    <div class="section-num">Section 3 · The Disappearance / ההיעלמות</div>
+    <div class="section-title">The Island That Vanished / האי שנעלם</div>
+
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">🔤</span><span class="activity-title">Vocab Match</span><span class="activity-pts">+1 pt each</span></div>
+      <div class="instr"><span class="instr-en">Click an English word, then its Hebrew match.</span><span class="instr-he">לחץ על מילה באנגלית ואחר כך על התרגום שלה בעברית.</span></div>
+      <div class="vocab-grid"><div class="vocab-col" id="v3-en"></div><div class="vocab-col" id="v3-he"></div></div>
+      <div id="vocab3-feedback"></div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">🎧</span><span class="activity-title">Dramatic Listening</span><span class="activity-pts">+2 pts</span></div>
+      <div class="instr"><span class="instr-en">Press Listen. Drag the slider to follow the reading.</span><span class="instr-he">לחץ האזן. גרור את הפס הגלילה.</span></div>
+      <button class="btn btn-primary btn-sm" onclick="listenSection(3)" id="listen-btn3">🎧 Listen / האזן</button>
+      <div id="story3" class="story-text" style="margin-top:12px;"></div>
+      <div class="hidden" id="slider-wrap3"><!-- built dynamically --></div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">✏️</span><span class="activity-title">Fill in the Blanks</span><span class="activity-pts">+3 pts total</span></div>
+      <div class="instr"><span class="instr-en">Click a word from the bank, then click a blank.</span><span class="instr-he">לחץ על מילה מהבנק, ואז לחץ על הרווח הריק.</span></div>
+      <div class="cloze-full-text" id="cloze3-sentence"></div>
+      <div class="word-bank" id="wb3"></div>
+      <div id="cloze3-feedback"></div>
+      <div class="mt8 hidden" id="cloze3-relisten"><button class="btn btn-primary btn-sm" onclick="relistenCloze(3)">🎧 Listen Again / האזן שוב</button></div>
+    </div>
+
+    <div class="game-card">
+      <div class="game-title">🎮 True or False? / נכון או לא נכון?</div>
+      <div class="game-sub">Answer quickly! / ענה מהר!</div>
+      <div id="game3-content"></div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">❓</span><span class="activity-title">Quick Quiz</span><span class="activity-pts">+1 pt each</span></div>
+      <div class="instr"><span class="instr-en">Choose the correct answer. Press 🔊 to hear it.</span><span class="instr-he">בחר את התשובה הנכונה. לחץ 🔊 לשמוע.</span></div>
+      <div id="quiz3-content"></div>
+    </div>
+
+    <div class="activity" id="listen2-activity-3" style="border:2px solid rgba(15,168,168,0.4);">
+      <div class="activity-header"><span class="activity-icon">🎧</span><span class="activity-title">Second Listening — Required</span><span class="activity-pts">+2 pts</span></div>
+      <div class="instr"><span class="instr-en">Listen to the section again before continuing. This is required!</span><span class="instr-he">האזן לחלק שוב לפני שממשיכים. זה חובה!</span></div>
+      <button class="btn btn-primary btn-sm" onclick="doListen2(3)" id="listen2-btn3">🎧 Listen Again / האזן שוב</button>
+      <div id="listen2-status3" style="margin-top:8px;font-size:13px;font-weight:700;min-height:20px;"></div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">🌐</span><span class="activity-title">Translation Challenge</span><span class="activity-pts">+2 pts</span></div>
+      <div class="instr"><span class="instr-en">Translate into Hebrew.</span><span class="instr-he">תרגם לעברית.</span></div>
+      <div class="trans-src">"Suddenly, the whole island disappeared into the sea."</div>
+      <textarea class="trans-input" id="trans3-input" placeholder="כתוב את התרגום שלך כאן..."></textarea>
+      <div class="mt8"><button class="btn btn-primary btn-sm" onclick="submitTrans(3)">Submit / שלח</button></div>
+      <div class="model-answer" id="ma3"><strong>✅ Model Answer:</strong>פתאום, כל האי נעלם לתוך הים.</div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">🎤</span><span class="activity-title">Record Yourself</span><span class="activity-pts">+2 pts</span></div>
+      <div class="instr"><span class="instr-en">Read aloud and record. Your teacher will grade it.</span><span class="instr-he">קרא בקול רם והקלט. המורה תדרג.</span></div>
+      <div class="speak-text">Suddenly, one day, the whole island disappeared into the sea. Nobody knew what happened.</div>
+      <div class="record-controls">
+        <button class="btn btn-coral btn-sm" onclick="startRec('rec3')">⏺ Record / הקלט</button>
+        <button class="btn btn-primary btn-sm" onclick="stopRec('rec3')" id="stop-rec3" disabled>⏹ Stop / עצור</button>
+        <span class="rec-dot" id="dot-rec3"></span><span class="rec-status" id="status-rec3">Press Record to start</span>
+      </div>
+      <audio class="playback" id="playback-rec3" controls></audio>
+      <div class="encourage" id="enc-rec3"></div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">🔁</span><span class="activity-title">Reverse Speaking — Full Section</span><span class="activity-pts">+1 pt</span></div>
+      <div class="instr"><span class="instr-en">Look at the Hebrew. Say the FULL English aloud, then record.</span><span class="instr-he">הסתכל על העברית. אמור את כל האנגלית בקול רם, ואז הקלט.</span></div>
+      <div class="speak-text" dir="rtl">פתאום, יום אחד, כל האי נעלם לתוך הים. אף אחד לא ידע מה קרה.</div>
+      <div class="record-controls mt8">
+        <button class="btn btn-coral btn-sm" onclick="startRec('rev3')">⏺ Record / הקלט</button>
+        <button class="btn btn-primary btn-sm" onclick="stopRec('rev3')" id="stop-rev3" disabled>⏹ Stop / עצור</button>
+        <span class="rec-dot" id="dot-rev3"></span><span class="rec-status" id="status-rev3">Press Record to start</span>
+      </div>
+      <audio class="playback" id="playback-rev3" controls></audio>
+      <div class="encourage" id="enc-rev3"></div>
+    </div>
+
+    <div style="text-align:center;margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="goBack(2)" style="font-size:13px;padding:10px 22px;">← Back / חזור</button>
+      <button class="btn-next" id="next3" onclick="tryGoSection(4)">Next Section → / לחלק הבא →</button>
+    </div>
+  </div>
+
+  <!-- ══════════════ SECTION 4 ══════════════ -->
+  <div class="section-card" id="sec4">
+    <div class="section-num">Section 4 · The Search / החיפוש</div>
+    <div class="section-title">Where Did Atlantis Go? / לאן נעלמה אטלנטיס?</div>
+
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">🔤</span><span class="activity-title">Vocab Match</span><span class="activity-pts">+1 pt each</span></div>
+      <div class="instr"><span class="instr-en">Click an English word, then its Hebrew match.</span><span class="instr-he">לחץ על מילה באנגלית ואחר כך על התרגום שלה בעברית.</span></div>
+      <div class="vocab-grid"><div class="vocab-col" id="v4-en"></div><div class="vocab-col" id="v4-he"></div></div>
+      <div id="vocab4-feedback"></div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">🎧</span><span class="activity-title">Dramatic Listening</span><span class="activity-pts">+2 pts</span></div>
+      <div class="instr"><span class="instr-en">Press Listen. Drag the slider to follow the reading.</span><span class="instr-he">לחץ האזן. גרור את הפס הגלילה.</span></div>
+      <button class="btn btn-primary btn-sm" onclick="listenSection(4)" id="listen-btn4">🎧 Listen / האזן</button>
+      <div id="story4" class="story-text" style="margin-top:12px;"></div>
+      <div class="hidden" id="slider-wrap4"><!-- built dynamically --></div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">✏️</span><span class="activity-title">Fill in the Blanks</span><span class="activity-pts">+3 pts total</span></div>
+      <div class="instr"><span class="instr-en">Click a word from the bank, then click a blank.</span><span class="instr-he">לחץ על מילה מהבנק, ואז לחץ על הרווח הריק.</span></div>
+      <div class="cloze-full-text" id="cloze4-sentence"></div>
+      <div class="word-bank" id="wb4"></div>
+      <div id="cloze4-feedback"></div>
+      <div class="mt8 hidden" id="cloze4-relisten"><button class="btn btn-primary btn-sm" onclick="relistenCloze(4)">🎧 Listen Again / האזן שוב</button></div>
+    </div>
+
+    <div class="game-card">
+      <div class="game-title">🎮 Speed Match!</div>
+      <div class="game-sub">Match all pairs as fast as you can! / התאם את כל הזוגות כמה שיותר מהר!</div>
+      <div id="game4-content"></div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">❓</span><span class="activity-title">Quick Quiz</span><span class="activity-pts">+1 pt each</span></div>
+      <div class="instr"><span class="instr-en">Choose the correct answer. Press 🔊 to hear it.</span><span class="instr-he">בחר את התשובה הנכונה. לחץ 🔊 לשמוע.</span></div>
+      <div id="quiz4-content"></div>
+    </div>
+
+    <div class="activity" id="listen2-activity-4" style="border:2px solid rgba(15,168,168,0.4);">
+      <div class="activity-header"><span class="activity-icon">🎧</span><span class="activity-title">Second Listening — Required</span><span class="activity-pts">+2 pts</span></div>
+      <div class="instr"><span class="instr-en">Listen to the section again before continuing. This is required!</span><span class="instr-he">האזן לחלק שוב לפני שממשיכים. זה חובה!</span></div>
+      <button class="btn btn-primary btn-sm" onclick="doListen2(4)" id="listen2-btn4">🎧 Listen Again / האזן שוב</button>
+      <div id="listen2-status4" style="margin-top:8px;font-size:13px;font-weight:700;min-height:20px;"></div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">🌐</span><span class="activity-title">Translation Challenge</span><span class="activity-pts">+2 pts</span></div>
+      <div class="instr"><span class="instr-en">Translate into Hebrew.</span><span class="instr-he">תרגם לעברית.</span></div>
+      <div class="trans-src">"Scientists believe it is somewhere at the bottom of the Atlantic Ocean."</div>
+      <textarea class="trans-input" id="trans4-input" placeholder="כתוב את התרגום שלך כאן..."></textarea>
+      <div class="mt8"><button class="btn btn-primary btn-sm" onclick="submitTrans(4)">Submit / שלח</button></div>
+      <div class="model-answer" id="ma4"><strong>✅ Model Answer:</strong>מדענים מאמינים שהוא נמצא אי שם בקרקעית האוקיינוס האטלנטי.</div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">🎤</span><span class="activity-title">Record Yourself</span><span class="activity-pts">+2 pts</span></div>
+      <div class="instr"><span class="instr-en">Read aloud and record. Your teacher will grade it.</span><span class="instr-he">קרא בקול רם והקלט. המורה תדרג.</span></div>
+      <div class="speak-text">Even after all these years, nobody knows exactly where Atlantis went. Scientists believe it is somewhere at the bottom of the Atlantic Ocean.</div>
+      <div class="record-controls">
+        <button class="btn btn-coral btn-sm" onclick="startRec('rec4')">⏺ Record / הקלט</button>
+        <button class="btn btn-primary btn-sm" onclick="stopRec('rec4')" id="stop-rec4" disabled>⏹ Stop / עצור</button>
+        <span class="rec-dot" id="dot-rec4"></span><span class="rec-status" id="status-rec4">Press Record to start</span>
+      </div>
+      <audio class="playback" id="playback-rec4" controls></audio>
+      <div class="encourage" id="enc-rec4"></div>
+    </div>
+
+    <div class="activity">
+      <div class="activity-header"><span class="activity-icon">🔁</span><span class="activity-title">Reverse Speaking — Full Section</span><span class="activity-pts">+1 pt</span></div>
+      <div class="instr"><span class="instr-en">Look at the Hebrew. Say the FULL English aloud, then record.</span><span class="instr-he">הסתכל על העברית. אמור את כל האנגלית בקול רם, ואז הקלט.</span></div>
+      <div class="speak-text" dir="rtl">גם אחרי כל השנים האלה, אף אחד לא יודע בדיוק לאן הלכה אטלנטיס. מדענים מאמינים שהיא נמצאת אי שם בקרקעית האוקיינוס האטלנטי.</div>
+      <div class="record-controls mt8">
+        <button class="btn btn-coral btn-sm" onclick="startRec('rev4')">⏺ Record / הקלט</button>
+        <button class="btn btn-primary btn-sm" onclick="stopRec('rev4')" id="stop-rev4" disabled>⏹ Stop / עצור</button>
+        <span class="rec-dot" id="dot-rev4"></span><span class="rec-status" id="status-rev4">Press Record to start</span>
+      </div>
+      <audio class="playback" id="playback-rev4" controls></audio>
+      <div class="encourage" id="enc-rev4"></div>
+    </div>
+
+    <!-- GRAND FINALE -->
+    <div class="activity" style="border:2px solid var(--gold);">
+      <div class="activity-header"><span class="activity-icon">🌟</span><span class="activity-title">Grand Finale — Read the WHOLE Story!</span><span class="activity-pts">+20 pts</span></div>
+      <div class="instr"><span class="instr-en">You've mastered every word! Read the complete story aloud and record. This recording will be sent to your teacher.</span><span class="instr-he">שלטת בכל מילה! קרא את הסיפור המלא בקול רם והקלט. ההקלטה תישלח למורה.</span></div>
+      <div class="final-record-text">
+        The Lost City of Atlantis is one of the oldest and greatest mysteries in the world.<br><br>
+        Atlantis was a large island to the south of Spain. People wrote about it over 2,000 years ago. They said it was an island filled with peace and happiness.<br><br>
+        Suddenly, one day, the whole island disappeared into the sea.<br><br>
+        Even after all these years, nobody knows exactly where Atlantis went. The stories suggest that the island sank into the sea after there was an earthquake or tsunami. Scientists believe it is somewhere at the bottom of the Atlantic Ocean.
+      </div>
+      <div class="record-controls">
+        <button class="btn btn-coral btn-sm" onclick="startRec('final')">⏺ Record / הקלט</button>
+        <button class="btn btn-primary btn-sm" onclick="stopRec('final')" id="stop-final" disabled>⏹ Stop / עצור</button>
+        <span class="rec-dot" id="dot-final"></span><span class="rec-status" id="status-final">Press Record to start</span>
+      </div>
+      <audio class="playback" id="playback-final" controls></audio>
+      <div class="encourage" id="enc-final"></div>
+    </div>
+
+    <div id="final-rec-required-msg" style="display:none;margin-top:12px;padding:14px 18px;border-radius:12px;background:rgba(255,107,107,0.15);border:2px solid var(--coral);color:var(--coral);font-size:14px;font-weight:700;text-align:center;">
+      🎤 You must record the Grand Finale before completing the mission!<br>
+      <span style="direction:rtl;display:block;font-size:13px;margin-top:4px;">חובה להקליט את הסיומת הגדולה לפני סיום המשימה!</span>
+    </div>
+    <div style="text-align:center;margin-top:20px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="goBack(3)" style="font-size:13px;padding:10px 22px;">← Back / חזור</button>
+      <button class="btn-next show" id="next4" onclick="completeMission()" style="background:linear-gradient(135deg,var(--gold),var(--coral));">🏆 Complete the Mission! / סיים את המשימה!</button>
+    </div>
+  </div>
+
+  <!-- MISSION COMPLETE -->
+  <div id="mission-complete">
+    <div class="trophy">🏆</div>
+    <h2>Mission Complete! / המשימה הושלמה!</h2>
+    <p>You explored the mystery of Atlantis!</p>
+    <div class="final-score-big" id="final-score-display">0 pts</div>
+    <div class="stars" id="stars-display">⭐⭐⭐</div>
+    <p id="final-msg"></p>
+
+    <div class="report-box" id="full-report">
+      <h3>📊 Your Report Card / כרטיס הדוח שלך</h3>
+      <div class="score-100" id="score-100-display"></div>
+      <div id="report-rows"></div>
+
+      <!-- Final recording playback in report -->
+      <div style="margin-top:16px;border-top:1px solid rgba(15,168,168,0.2);padding-top:14px;">
+        <div style="font-size:13px;color:var(--mint);font-weight:700;margin-bottom:6px;">🎙️ Final Recording / ההקלטה הסופית:</div>
+        <audio id="final-playback-report" controls style="width:100%;border-radius:30px;display:none;"></audio>
+        <div id="no-final-rec" style="font-size:12px;color:var(--coral);display:none;">No final recording found. Scroll up to record. / לא נמצאה הקלטה סופית. גלול למעלה להקלטה.</div>
+        <div style="margin-top:10px;padding:10px 14px;background:rgba(240,192,64,0.1);border:1px solid rgba(240,192,64,0.35);border-radius:10px;font-size:12px;color:rgba(255,220,100,0.9);line-height:1.7;">
+          ⚠️ <strong>Important / חשוב:</strong> WhatsApp can only send the text report automatically. The final voice recording must be <strong>downloaded using the button below</strong> and attached manually to WhatsApp or sent separately.<br>
+          <span style="direction:rtl;display:block;margin-top:4px;">וואטסאפ שולח רק את הדוח הטקסטואלי. יש להוריד את ההקלטה הסופית ולצרפה ידנית להודעה.</span>
+        </div>
+      </div>
+
+      <textarea id="share-text" rows="7" readonly style="margin-top:14px;"></textarea>
+      <div class="flex-gap mt8">
+        <button class="btn btn-gold btn-sm" onclick="copyReport()">📋 Copy Report / העתק דוח</button>
+        <button class="btn btn-primary btn-sm" onclick="sendWhatsApp()" style="background:linear-gradient(135deg,#25d366,#128c7e);">💬 Send to Teacher via WhatsApp / שלח למורה בוואטסאפ</button>
+      </div>
+      <div id="copy-ok" style="color:#4ade80;font-size:13px;margin-top:6px;display:none;">✅ Copied! / הועתק!</div>
+      <div id="email-note" style="color:var(--mint);font-size:12px;margin-top:6px;display:none;"></div>
+    </div>
+  </div>
+
+</div><!-- .app -->
+
+<script>
+// ═══════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════
+const STORIES = {
+  1:"The Lost City of Atlantis is one of the oldest and greatest mysteries in the world.",
+  2:"Atlantis was a large island to the south of Spain. People wrote about it over 2,000 years ago. They said it was an island filled with peace and happiness.",
+  3:"Suddenly, one day, the whole island disappeared into the sea. Nobody knew what happened.",
+  4:"Even after all these years, nobody knows exactly where Atlantis went. The stories suggest that the island sank into the sea after there was an earthquake or tsunami. Scientists believe it is somewhere at the bottom of the Atlantic Ocean."
+};
+
+const VOCAB = {
+  1:[{en:"mystery",he:"תעלומה"},{en:"world",he:"עולם"},{en:"oldest",he:"הישן ביותר"},{en:"greatest",he:"הגדול ביותר"},{en:"city",he:"עיר"}],
+  2:[{en:"island",he:"אי"},{en:"peace",he:"שלום"},{en:"happiness",he:"אושר"},{en:"south",he:"דרום"},{en:"filled",he:"מלא"}],
+  3:[{en:"disappeared",he:"נעלם"},{en:"suddenly",he:"פתאום"},{en:"whole",he:"כל / שלם"},{en:"sea",he:"ים"},{en:"one day",he:"יום אחד"}],
+  4:[{en:"scientists",he:"מדענים"},{en:"earthquake",he:"רעידת אדמה"},{en:"tsunami",he:"צונאמי"},{en:"believe",he:"מאמינים"},{en:"bottom",he:"קרקעית"}]
+};
+
+const CLOZE = {
+  1:{
+    template:[
+      "The ",{blank:0,ans:"Lost"}," City of Atlantis is one of the ",{blank:1,ans:"oldest"},
+      " and greatest ",{blank:2,ans:"mysteries"}," in the world."
+    ],
+    bank:["Lost","oldest","mysteries","Found","newest","stories","ancient","secrets"]
+  },
+  2:{
+    template:[
+      "Atlantis was a large ",{blank:0,ans:"island"}," to the ",{blank:1,ans:"south"},
+      " of Spain. People wrote about it over 2,000 years ago. They said it was an island filled with ",
+      {blank:2,ans:"peace"}," and ",{blank:3,ans:"happiness"},"."
+    ],
+    bank:["island","south","peace","happiness","mountain","north","war","sadness","country","east"]
+  },
+  3:{
+    template:[
+      {blank:0,ans:"Suddenly"},", one day, the whole island ",{blank:1,ans:"disappeared"},
+      " into the ",{blank:2,ans:"sea"},". Nobody knew what happened."
+    ],
+    bank:["Suddenly","disappeared","sea","Slowly","appeared","sky","river","Eventually","Quietly","vanished"]
+  },
+  4:{
+    template:[
+      "Even after all these years, nobody knows exactly where Atlantis ",{blank:0,ans:"went"},
+      ". The stories suggest that the island ",{blank:1,ans:"sank"},
+      " into the sea after there was an earthquake or tsunami. Scientists ",
+      {blank:2,ans:"believe"}," it is somewhere at the bottom of the Atlantic ",{blank:3,ans:"Ocean"},"."
+    ],
+    bank:["went","sank","believe","Ocean","came","floated","doubt","River","disappeared","think","Sea","Atlantic"]
+  }
+};
+
+const QUIZ = {
+  1:[
+    {q:"Why is the Lost City of Atlantis famous?",opts:["It disappeared mysteriously","It is a modern city","It is in Africa"],ans:0},
+    {q:"How old are the stories about Atlantis?",opts:["About 200 years old","Over 2,000 years old","About 50 years old"],ans:1},
+    {q:"What kind of mystery is Atlantis?",opts:["A small local story","One of the oldest and greatest mysteries","A new scientific discovery"],ans:1}
+  ],
+  2:[
+    {q:"Where was Atlantis located?",opts:["North of Spain","South of Spain","East of Africa"],ans:1},
+    {q:"What was Atlantis filled with?",opts:["Gold and silver","Peace and happiness","Mountains and deserts"],ans:1},
+    {q:"How long ago did people first write about Atlantis?",opts:["500 years ago","100 years ago","Over 2,000 years ago"],ans:2}
+  ],
+  3:[
+    {q:"What happened to Atlantis?",opts:["It became a tourist place","It disappeared into the sea","It was destroyed by fire"],ans:1},
+    {q:"How did the island disappear?",opts:["It was sold","It suddenly disappeared into the sea","It slowly dried up"],ans:1},
+    {q:"What word best describes the disappearance?",opts:["Slow and boring","Peaceful and planned","Sudden and mysterious"],ans:2}
+  ],
+  4:[
+    {q:"What do scientists believe happened?",opts:["It flew into space","It sank to the bottom of the Atlantic Ocean","It moved somewhere else"],ans:1},
+    {q:"What may have caused Atlantis to sink?",opts:["A volcanic eruption","An earthquake or tsunami","A very strong wind"],ans:1},
+    {q:"Does anyone know exactly where Atlantis went?",opts:["Yes, scientists found it","No, nobody knows exactly","Yes, it is in the Pacific"],ans:1}
+  ]
+};
+
+// ───────────────────────────────────────
+// TRANSLATION: very flexible matching
+// For each section, define GROUPS of synonyms.
+// The student must match at least REQUIRED_MATCHES groups (not all).
+// This allows many different valid phrasings.
+// ───────────────────────────────────────
+const TRANS_GROUPS = {
+  // Section 1: "The Lost City of Atlantis is one of the greatest mysteries in the world."
+  1: {
+    required: 2,  // must match at least 2 out of 4 groups
+    groups: [
+      ["אטלנטיס"],
+      ["תעלומ","מסתור","סוד","מסתורי"],
+      ["עולם","תבל"],
+      ["עיר","עיר האבוד","האבוד","האובד"]
+    ]
+  },
+  // Section 2: "It was an island filled with peace and happiness."
+  2: {
+    required: 2,
+    groups: [
+      ["אי","איי"],
+      ["שלום","שלוה","שקט"],
+      ["אושר","שמחה","עושר","טוב","טובה"],
+      ["מלא","מלאה","מלאי","מלאות","גדוש","עשיר"]
+    ]
+  },
+  // Section 3: "Suddenly, the whole island disappeared into the sea."
+  3: {
+    required: 2,
+    groups: [
+      ["פתאום","לפתע","בפתאומיות","פתע"],
+      ["נעלם","נעלמה","ירד","ירדה","שקע","שקעה","נבלע","נבלעה","נשקע","אבד","אבדה","התבלע"],
+      ["ים","מים","אוקיינוס","עומק"],
+      ["אי","האי","כל האי","האי כולו"]
+    ]
+  },
+  // Section 4: "Scientists believe it is somewhere at the bottom of the Atlantic Ocean."
+  4: {
+    required: 2,
+    groups: [
+      ["מדענ","חוקר","חוקרים","מדע"],
+      ["מאמינ","חושב","חושבים","סבור","סבורים","טוען","טוענים","לדעת"],
+      ["אוקיינוס","ים","אוקינוס","אוקיאנוס"],
+      ["קרקעית","תחתית","עומק","תהום","קרקע","דן"]
+    ]
+  }
+};
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let score = 0;
+let currentSection = 1;
+const sectionProgress = {
+  1:{vocab:false,listen:false,cloze:false,quiz:false,listen2:false,trans:false,speak:false,revspeak:false},
+  2:{vocab:false,listen:false,cloze:false,quiz:false,listen2:false,trans:false,speak:false,revspeak:false},
+  3:{vocab:false,listen:false,cloze:false,quiz:false,listen2:false,trans:false,speak:false,revspeak:false},
+  4:{vocab:false,listen:false,cloze:false,quiz:false,listen2:false,trans:false,speak:false,revspeak:false}
+};
+// Track attempts for report card
+const attempts = {
+  vocab:{1:0,2:0,3:0,4:0}, quiz:{1:0,2:0,3:0,4:0},
+  trans:{1:0,2:0,3:0,4:0}, cloze:{1:0,2:0,3:0,4:0},
+  listen:{1:0,2:0,3:0,4:0}
+};
+const correctOnFirst = {vocab:{},quiz:{},trans:{},cloze:{},listen:{}};
+const completedOnce = {trans:{},speak:{},revspeak:{},listen:{},final:false};
+const vocabState = {};
+const clozeState = {};
+const quizState  = {};
+const mediaRecs  = {};
+const listenState = {};
+let penalties = 0; // total penalty points (subtracted from raw score for display)
+
+// ═══════════════════════════════════════
+// PERSIST
+// ═══════════════════════════════════════
+function saveProgress(){
+  try{
+    const clozeSave={};
+    for(let s=1;s<=4;s++){
+      clozeSave[s]=clozeState[s]?{filledBlanks:clozeState[s].filledBlanks,done:clozeState[s].done}:{};
+    }
+    const quizSave={};
+    for(let s=1;s<=4;s++){
+      quizSave[s]=quizState[s]?{answered:quizState[s].answered,correctIndices:quizState[s].correctIndices||[]}:{};
+    }
+    localStorage.setItem('atlantis_v6', JSON.stringify({
+      score, currentSection, sectionProgress, completedOnce,
+      attempts, penalties, clozeSave, quizSave,
+      name: document.getElementById('student-name').value
+    }));
+  }catch(e){}
+}
+
+function loadProgress(){
+  try{
+    // try new key first, fall back to old
+    const raw = localStorage.getItem('atlantis_v6') || localStorage.getItem('atlantis_v5');
+    if(!raw) return;
+    const d = JSON.parse(raw);
+    score = d.score||0;
+    currentSection = d.currentSection||1;
+    if(d.sectionProgress) Object.assign(sectionProgress, d.sectionProgress);
+    if(d.completedOnce) Object.assign(completedOnce, d.completedOnce);
+    if(d.attempts) { Object.assign(attempts.vocab, d.attempts.vocab||{}); Object.assign(attempts.quiz, d.attempts.quiz||{}); Object.assign(attempts.trans, d.attempts.trans||{}); Object.assign(attempts.cloze, d.attempts.cloze||{}); }
+    if(d.penalties) penalties = d.penalties;
+    if(d.clozeSave) window._clozeSave = d.clozeSave;
+    if(d.quizSave)  window._quizSave  = d.quizSave;
+    if(d.name) document.getElementById('student-name').value = d.name;
+  }catch(e){}
+}
+
+// Restore cloze UI from saved state after build
+function restoreCloze(s){
+  const saved = window._clozeSave && window._clozeSave[s];
+  if(!saved || !saved.filledBlanks) return;
+  Object.entries(saved.filledBlanks).forEach(([idx, word])=>{
+    const blank = document.getElementById(`blank${s}-${idx}`);
+    if(blank){ blank.textContent=word; blank.classList.add('correct'); }
+    const wb = document.getElementById(`wb${s}-${word}`);
+    if(wb) wb.classList.add('used');
+  });
+  if(saved.done){
+    clozeState[s].done=true;
+    clozeState[s].filledBlanks=saved.filledBlanks;
+    document.getElementById(`cloze${s}-relisten`).classList.remove('hidden');
+  }
+}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  buildBubbles();
+  buildDots();
+  loadProgress();
+  for(let s=1;s<=4;s++){
+    buildStoryText(s);
+    buildVocab(s);
+    buildCloze(s);
+    restoreCloze(s);
+    buildQuiz(s);
+  }
+  buildGame1();buildGame2();buildGame3();buildGame4();
+  // Restore section display
+  for(let s=1;s<=4;s++){
+    document.getElementById(`sec${s}`).classList.remove('active');
+    // Always show Next buttons — validation happens in tryGoSection
+    const btn=document.getElementById(`next${s}`);
+    if(btn&&s<4) btn.classList.add('show');
+    if(completedOnce.trans[s]){
+      const ma=document.getElementById(`ma${s}`);
+      if(ma) ma.style.display='block';
+    }
+    // Restore cloze filled state
+    restoreCloze(s);
+    // Restore relisten button
+    if(sectionProgress[s].cloze){
+      const rel=document.getElementById(`cloze${s}-relisten`);
+      if(rel)rel.classList.remove('hidden');
+    }
+    // Restore speak/revspeak done state
+    const spk=completedOnce.speak||{};
+    const rev=completedOnce.revspeak||{};
+    if(spk[s]){
+      const enc=document.getElementById(`enc-rec${s}`);
+      if(enc){enc.className='encourage show try';enc.textContent='✅ Recording previously submitted / ההקלטה כבר הוגשה';}
+    }
+    if(rev[s]){
+      const enc=document.getElementById(`enc-rev${s}`);
+      if(enc){enc.className='encourage show try';enc.textContent='✅ Recording previously submitted / ההקלטה כבר הוגשה';}
+    }
+    // Restore listen done state
+    if(sectionProgress[s].listen){
+      const wrap=document.getElementById(`slider-wrap${s}`);
+      if(wrap){
+        wrap.classList.remove('hidden');
+        wrap.innerHTML=`<div style="color:#4ade80;font-size:13px;font-weight:700;padding:8px 0;">✅ Listening completed! Listen again anytime below.<br><span style="direction:rtl;display:block;font-size:12px;color:rgba(168,240,224,0.7);">ההאזנה הושלמה! ניתן להאזין שוב בכל עת.</span></div>`;
+      }
+      const lb=document.getElementById(`listen-btn${s}`);
+      if(lb) lb.textContent='🎧 Listen Again / האזן שוב';
+    }
+    // Restore listen2 done state
+    if(sectionProgress[s].listen2){
+      const st2=document.getElementById(`listen2-status${s}`);
+      if(st2) st2.innerHTML='✅ <span style="color:#4ade80;">Second listening complete! / האזנה שנייה הושלמה!</span>';
+      const lb2=document.getElementById(`listen2-btn${s}`);
+      if(lb2){lb2.textContent='🎧 Listen Again / האזן שוב';lb2.disabled=false;}
+    }
+  }
+  document.getElementById(`sec${currentSection}`).classList.add('active');
+  updateHUD();
+});
+
+function buildBubbles(){
+  const c=document.getElementById('bubbles');
+  for(let i=0;i<18;i++){
+    const b=document.createElement('div');b.className='bubble';
+    const sz=8+Math.random()*30;
+    b.style.cssText=`width:${sz}px;height:${sz}px;left:${Math.random()*100}%;animation-duration:${8+Math.random()*14}s;animation-delay:${Math.random()*10}s;`;
+    c.appendChild(b);
+  }
+}
+function buildDots(){
+  const d=document.getElementById('section-dots');
+  for(let i=1;i<=4;i++){
+    const dot=document.createElement('div');dot.className='dot'+(i===1?' active':'');dot.id=`dot${i}`;d.appendChild(dot);
+  }
+}
+
+// ═══════════════════════════════════════
+// STORY TEXT
+// ═══════════════════════════════════════
+function buildStoryText(s){
+  const el=document.getElementById(`story${s}`);
+  const words=STORIES[s].split(/(\s+)/);
+  el.innerHTML=words.map((w,i)=>w.trim()?`<span class="word" id="w${s}-${i}">${w}</span>`:w).join('');
+}
+
+// ═══════════════════════════════════════
+// VOCAB
+// ═══════════════════════════════════════
+function buildVocab(s){
+  const pairs=VOCAB[s];
+  const enEl=document.getElementById(`v${s}-en`);
+  const heEl=document.getElementById(`v${s}-he`);
+  vocabState[s]={selectedEn:null,selectedHe:null,matched:new Set()};
+  // Shuffle BOTH columns independently so answers never align with words
+  const enShuffled=[...pairs].sort(()=>Math.random()-0.5);
+  const heShuffled=[...pairs].sort(()=>Math.random()-0.5);
+  // Ensure at least one row misaligns (re-shuffle if identical order)
+  let att2=0;
+  while(att2<10&&enShuffled.every((p,i)=>p.en===heShuffled[i].en)){
+    heShuffled.sort(()=>Math.random()-0.5);att2++;
+  }
+  enShuffled.forEach(p=>{
+    const en=document.createElement('div');en.className='vocab-item vocab-en';en.textContent=p.en;en.dataset.word=p.en;
+    en.onclick=()=>selectVocab(s,'en',p.en,en);enEl.appendChild(en);
+  });
+  heShuffled.forEach(p=>{
+    const he=document.createElement('div');he.className='vocab-item vocab-he';he.textContent=p.he;he.dataset.word=p.en;
+    he.onclick=()=>selectVocab(s,'he',p.en,he);heEl.appendChild(he);
+  });
+  if(sectionProgress[s].vocab){
+    pairs.forEach(p=>{
+      enEl.querySelectorAll('.vocab-en').forEach(e=>{if(e.dataset.word===p.en)e.classList.add('matched');});
+      heEl.querySelectorAll('.vocab-he').forEach(e=>{if(e.dataset.word===p.en)e.classList.add('matched');});
+      vocabState[s].matched.add(p.en);
+    });
+  }
+}
+
+function selectVocab(s,side,word,el){
+  const st=vocabState[s];if(st.matched.has(word))return;
+  if(side==='en'){
+    document.querySelectorAll(`#v${s}-en .selected`).forEach(e=>e.classList.remove('selected'));
+    st.selectedEn={word,el};el.classList.add('selected');
+  } else {
+    document.querySelectorAll(`#v${s}-he .selected`).forEach(e=>e.classList.remove('selected'));
+    st.selectedHe={word,el};el.classList.add('selected');
+  }
+  if(st.selectedEn&&st.selectedHe){
+    attempts.vocab[s]=(attempts.vocab[s]||0)+1;
+    if(st.selectedEn.word===st.selectedHe.word){
+      st.selectedEn.el.classList.remove('selected');st.selectedEn.el.classList.add('matched');
+      st.selectedHe.el.classList.remove('selected');st.selectedHe.el.classList.add('matched');
+      st.matched.add(word);addScore(1);
+      flashFeedback(`vocab${s}-feedback`,'✅ Correct! +1 pt','correct');
+      st.selectedEn=null;st.selectedHe=null;
+      if(st.matched.size===VOCAB[s].length){
+        flashFeedback(`vocab${s}-feedback`,`🎉 All ${VOCAB[s].length} pairs matched!`,'correct');
+        sectionProgress[s].vocab=true;checkSectionComplete(s);saveProgress();
+      }
+    } else {
+      flashFeedback(`vocab${s}-feedback`,'❌ Not a match. Try again! / לא תואם. נסה שוב!','wrong');
+      addPenalty();
+      setTimeout(()=>{
+        if(st.selectedEn)st.selectedEn.el.classList.remove('selected');
+        if(st.selectedHe)st.selectedHe.el.classList.remove('selected');
+        st.selectedEn=null;st.selectedHe=null;
+      },600);
+    }
+  }
+}
+
+// ═══════════════════════════════════════
+// LISTENING + SLIDER (mobile-friendly, single slider per section)
+// Student drags the slider to follow along — highlighting moves with them.
+// A green bar shows reading progress automatically.
+// ═══════════════════════════════════════
+function listenSection(s){
+  if(!window.speechSynthesis){alert('Your browser does not support text-to-speech / הדפדפן אינו תומך בהמרת טקסט לדיבור');return;}
+  window.speechSynthesis.cancel();
+
+  const text=STORIES[s];
+  const words=text.trim().split(/\s+/);
+  const totalWords=words.length;
+
+  // Show slider area
+  const wrap=document.getElementById(`slider-wrap${s}`);
+  wrap.classList.remove('hidden');
+  // Build slider UI fresh
+  wrap.innerHTML=`
+    <div style="font-size:12px;color:var(--mint);font-weight:700;margin-bottom:6px;">
+      🟡 <span id="slider-instr${s}">Press play, then drag the gold slider to follow each word!</span><br>
+      <span style="font-size:11px;direction:rtl;display:block;color:rgba(168,240,224,0.6);margin-top:2px;">גרור את הפס הגלילה הזהוב כדי לעקוב אחרי כל מילה!</span>
+    </div>
+    <div style="position:relative;margin:10px 0 4px;">
+      <div class="slider-progress-bar" style="position:absolute;top:50%;transform:translateY(-50%);width:100%;height:8px;pointer-events:none;">
+        <div class="slider-progress-fill" id="reading-progress${s}" style="height:100%;"></div>
+      </div>
+      <input type="range" class="slider-track" id="follow-slider${s}" min="0" max="100" value="0" style="position:relative;z-index:2;background:transparent;">
+    </div>
+    <div class="slider-score-area" id="slider-score${s}"></div>
+    <div class="mt8 hidden" id="slider-retry${s}">
+      <button class="btn btn-primary btn-sm" onclick="retrySlider(${s})">🔄 Try Again / נסה שוב</button>
+    </div>
+  `;
+
+  // Reset state BEFORE wiring events so the handler can push to it
+  listenState[s]={snapshots:[],totalWords,readingDone:false,sliderMoved:false};
+
+  // Wire the slider — 'input' fires on BOTH mouse drag and touch drag.
+  // This is the primary detection mechanism and works on all devices.
+  const slider=document.getElementById(`follow-slider${s}`);
+  const handleSliderInput=()=>{
+    trackSlider(s);
+    // Record the current slider value as a snapshot (mobile + desktop)
+    const val=parseInt(slider.value);
+    listenState[s].snapshots.push(val);
+    listenState[s].sliderMoved=true;
+  };
+  slider.addEventListener('input', handleSliderInput);
+  // Also keep change event as fallback for some older browsers
+  slider.addEventListener('change', handleSliderInput);
+
+  const btn=document.getElementById(`listen-btn${s}`);
+  btn.textContent='🔊 Playing… / מתנגן…';btn.disabled=true;
+
+  // Pick voice
+  const pickVoice=()=>{
+    const voices=window.speechSynthesis.getVoices();
+    const names=['daniel','alex','fred','bruce','oliver','thomas','arthur'];
+    for(const n of names){const v=voices.find(v=>v.name.toLowerCase().includes(n));if(v)return v;}
+    return voices.find(v=>v.lang&&v.lang.startsWith('en')&&!v.name.includes('Zira')&&!v.name.includes('Siri'))||null;
+  };
+
+  const utt=new SpeechSynthesisUtterance(text);
+  utt.rate=0.42;utt.pitch=0.85;utt.lang='en-US';
+  const v=pickVoice();if(v)utt.voice=v;
+
+  const storyEl=document.getElementById(`story${s}`);
+  const wordEls=storyEl.querySelectorAll('.word');
+  let wordIndex=0;
+
+  utt.onboundary=(e)=>{
+    if(e.name!=='word')return;
+    wordEls.forEach(w=>w.classList.remove('highlight'));
+    if(wordIndex<totalWords){
+      wordEls[wordIndex].classList.add('highlight');
+      // Scroll word into view on mobile
+      wordEls[wordIndex].scrollIntoView({block:'nearest',behavior:'smooth'});
+    }
+    // Auto-move the green progress bar
+    const readPct=Math.round(((wordIndex+1)/totalWords)*100);
+    const pb=document.getElementById(`reading-progress${s}`);
+    if(pb)pb.style.width=readPct+'%';
+    // (Snapshot is now taken directly from slider 'input' event — works on mobile too)
+    wordIndex++;
+  };
+
+  utt.onend=()=>{
+    wordEls.forEach(w=>w.classList.remove('highlight'));
+    listenState[s].readingDone=true;
+    btn.textContent='🎧 Listen Again / האזן שוב';btn.disabled=false;
+    scoreSlider(s);
+  };
+
+  // iOS Safari: voices may load async
+  if(window.speechSynthesis.getVoices().length===0){
+    window.speechSynthesis.onvoiceschanged=()=>{const v2=pickVoice();if(v2)utt.voice=v2;};
+  }
+  window.speechSynthesis.speak(utt);
+}
+
+function trackSlider(s){
+  // Student moved slider — highlight word at that position
+  const sl=document.getElementById(`follow-slider${s}`);
+  if(!sl)return;
+  const pct=parseInt(sl.value)/100;
+  const wordEls=document.getElementById(`story${s}`).querySelectorAll('.word');
+  const idx=Math.min(Math.floor(pct*wordEls.length),wordEls.length-1);
+  wordEls.forEach((w,i)=>w.classList.toggle('highlight',i===idx));
+}
+
+function scoreSlider(s){
+  const st=listenState[s];
+  const scoreEl=document.getElementById(`slider-score${s}`);
+  const retryEl=document.getElementById(`slider-retry${s}`);
+
+  // No movement at all
+  if(!st||!st.sliderMoved||!st.snapshots||st.snapshots.length===0){
+    if(scoreEl){scoreEl.textContent='❓ No slider movement detected — drag while listening! / לא נרשמה תנועה — גרור בזמן ההאזנה!';scoreEl.style.color='var(--coral)';}
+    if(retryEl)retryEl.classList.remove('hidden');
+    return;
+  }
+
+  // Score based on how far the student dragged and how evenly they distributed movement.
+  // maxVal: highest slider value reached (0–100). Reaching 80+ means they followed to the end.
+  const maxVal=Math.max(...st.snapshots);
+  const minVal=Math.min(...st.snapshots);
+  const spread=maxVal-minVal; // how much they moved across the range
+
+  // Also check monotonic tendency (good followers move mostly left-to-right)
+  let forwardMoves=0;
+  for(let i=1;i<st.snapshots.length;i++){
+    if(st.snapshots[i]>=st.snapshots[i-1]) forwardMoves++;
+  }
+  const forwardRatio=st.snapshots.length>1?forwardMoves/(st.snapshots.length-1):0;
+
+  let pts=0,msg='',col='';
+  if(spread>=60&&maxVal>=70&&forwardRatio>=0.6){
+    pts=2;msg='🌟 Excellent! You followed the whole story! +2 pts / מצוין! עקבת אחרי כל הסיפור! +2 נק׳';col='#4ade80';
+  } else if(spread>=30&&maxVal>=40){
+    pts=1;msg='👍 Good effort! Try to follow all the way to the end. +1 pt / מאמץ טוב! נסה לעקוב עד הסוף. +1 נק׳';col='var(--gold)';
+  } else {
+    pts=1;msg='💡 Keep the slider moving with the reading! +1 pt / הזז את הפס יחד עם הקריאה! +1 נק׳';col='var(--coral)';
+    if(retryEl)retryEl.classList.remove('hidden');
+  }
+
+  if(scoreEl){scoreEl.textContent=msg;scoreEl.style.color=col;}
+
+  if(!completedOnce.listen[s]){
+    addScore(pts);completedOnce.listen[s]=true;
+    sectionProgress[s].listen=true;checkSectionComplete(s);saveProgress();
+  }
+}
+
+function retrySlider(s){
+  const st=listenState[s];if(st)st.snapshots=[];
+  const scoreEl=document.getElementById(`slider-score${s}`);
+  if(scoreEl)scoreEl.textContent='🔄 Listen again and drag the slider! / האזן שוב וגרור!';
+  const retryEl=document.getElementById(`slider-retry${s}`);if(retryEl)retryEl.classList.add('hidden');
+  listenSection(s);
+}
+
+function relistenCloze(s){
+  if(!window.speechSynthesis)return;
+  const utt=new SpeechSynthesisUtterance(STORIES[s]);
+  utt.rate=0.42;utt.pitch=0.85;utt.lang='en-US';
+  const voices=window.speechSynthesis.getVoices();
+  const v=voices.find(v=>v.name.toLowerCase().includes('daniel')||v.name.toLowerCase().includes('alex'));
+  if(v) utt.voice=v;
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utt);
+}
+
+function doListen2(s){
+  if(!window.speechSynthesis){alert('Your browser does not support text-to-speech');return;}
+  const btn=document.getElementById(`listen2-btn${s}`);
+  const statusEl=document.getElementById(`listen2-status${s}`);
+  if(btn){btn.disabled=true;btn.textContent='🔊 Playing… / מתנגן…';}
+  const utt=new SpeechSynthesisUtterance(STORIES[s]);
+  utt.rate=0.42;utt.pitch=0.85;utt.lang='en-US';
+  const voices=window.speechSynthesis.getVoices();
+  const v=voices.find(vv=>vv.name.toLowerCase().includes('daniel')||vv.name.toLowerCase().includes('alex'))||
+           voices.find(vv=>vv.lang&&vv.lang.startsWith('en'))||null;
+  if(v) utt.voice=v;
+  utt.onend=()=>{
+    if(!sectionProgress[s].listen2){
+      addScore(2);
+      sectionProgress[s].listen2=true;
+      checkSectionComplete(s);saveProgress();
+    }
+    if(btn){btn.textContent='🎧 Listen Again / האזן שוב';btn.disabled=false;}
+    if(statusEl){statusEl.innerHTML='✅ <span style="color:#4ade80;">Second listening complete! +2 pts / האזנה שנייה הושלמה!</span>';}
+  };
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utt);
+}
+
+// ═══════════════════════════════════════
+// CLOZE
+// ═══════════════════════════════════════
+function buildCloze(s){
+  const data=CLOZE[s];
+  const sentEl=document.getElementById(`cloze${s}-sentence`);
+  const wbEl=document.getElementById(`wb${s}`);
+  clozeState[s]={filledBlanks:{},selectedWord:null,done:false};
+  data.template.forEach(part=>{
+    if(typeof part==='string'){sentEl.appendChild(document.createTextNode(part));}
+    else{
+      const blank=document.createElement('span');blank.className='blank';
+      blank.id=`blank${s}-${part.blank}`;blank.dataset.ans=part.ans;blank.dataset.idx=part.blank;
+      blank.textContent='______';blank.onclick=()=>fillBlank(s,part.blank,blank);sentEl.appendChild(blank);
+    }
+  });
+  const shuffled=[...data.bank].sort(()=>Math.random()-0.5);
+  shuffled.forEach(w=>{
+    const btn=document.createElement('div');btn.className='wb-word';btn.textContent=w;btn.id=`wb${s}-${w}`;
+    btn.onclick=()=>selectWbWord(s,w,btn);wbEl.appendChild(btn);
+  });
+}
+
+function selectWbWord(s,word,el){
+  if(el.classList.contains('used'))return;
+  document.querySelectorAll(`#wb${s} .wb-word`).forEach(b=>b.style.outline='');
+  clozeState[s].selectedWord=word;el.style.outline='2px solid var(--gold)';
+}
+
+function fillBlank(s,idx,blankEl){
+  const st=clozeState[s];if(st.done)return;
+  if(!st.selectedWord){blankEl.style.borderColor='var(--coral)';setTimeout(()=>blankEl.style.borderColor='',500);return;}
+  const word=st.selectedWord;
+  const ans=blankEl.dataset.ans;
+  attempts.cloze[s]=(attempts.cloze[s]||0)+1;
+  if(word===ans){
+    blankEl.textContent=word;blankEl.classList.remove('wrong');blankEl.classList.add('correct');
+    st.filledBlanks[idx]=word;
+    const wb=document.getElementById(`wb${s}-${word}`);if(wb)wb.classList.add('used');
+    document.querySelectorAll(`#wb${s} .wb-word`).forEach(b=>b.style.outline='');
+    st.selectedWord=null;
+    const total=CLOZE[s].template.filter(p=>typeof p==='object').length;
+    if(Object.keys(st.filledBlanks).length===total){
+      const pts=3;addScore(pts);
+      flashFeedback(`cloze${s}-feedback`,`🎉 All correct! +3 pts / הכל נכון! +3 נק׳`,'correct');
+      document.getElementById(`cloze${s}-relisten`).classList.remove('hidden');
+      st.done=true;sectionProgress[s].cloze=true;checkSectionComplete(s);saveProgress();
+    } else {
+      flashFeedback(`cloze${s}-feedback`,'✅ Correct! Keep going… / נכון! המשך…','correct');
+    }
+  } else {
+    blankEl.textContent=word;blankEl.classList.add('wrong');
+    document.querySelectorAll(`#wb${s} .wb-word`).forEach(b=>b.style.outline='');
+    st.selectedWord=null;
+    addPenalty();
+    flashFeedback(`cloze${s}-feedback`,'❌ Not right — click the blank to try again. / לא נכון — לחץ על הרווח לנסות שוב.','wrong');
+    blankEl.onclick=()=>{
+      blankEl.textContent='______';blankEl.classList.remove('wrong');
+      const wb=document.getElementById(`wb${s}-${word}`);if(wb)wb.classList.remove('used');
+      blankEl.onclick=()=>fillBlank(s,idx,blankEl);
+      flashFeedback(`cloze${s}-feedback`,'','info');
+    };
+  }
+}
+
+// ═══════════════════════════════════════
+// QUIZ
+// ═══════════════════════════════════════
+function buildQuiz(s){
+  const container=document.getElementById(`quiz${s}-content`);
+  const saved=(window._quizSave||{})[s]||{};
+  const restoredCorrect=new Set(saved.correctIndices||[]);
+  quizState[s]={answered:saved.answered||0,total:QUIZ[s].length,correctIndices:saved.correctIndices||[]};
+
+  QUIZ[s].forEach((q,qi)=>{
+    const qDiv=document.createElement('div');qDiv.style.marginBottom='18px';
+    const qRow=document.createElement('div');qRow.className='quiz-q';
+    qRow.innerHTML=`${qi+1}. ${q.q}`;
+    const rb=document.createElement('button');rb.className='read-btn';rb.textContent='🔊';
+    rb.onclick=()=>readAloud(q.q);qRow.appendChild(rb);qDiv.appendChild(qRow);
+    const opts=document.createElement('div');opts.className='quiz-opts';
+    q.opts.forEach((opt,oi)=>{
+      const o=document.createElement('div');o.className='quiz-opt';
+      const span=document.createElement('span');span.textContent=opt;
+      const rb2=document.createElement('button');rb2.className='read-btn';rb2.textContent='🔊';
+      rb2.onclick=e=>{e.stopPropagation();readAloud(opt);};
+      o.appendChild(span);o.appendChild(rb2);
+      // Restore if this question was already answered correctly
+      if(restoredCorrect.has(qi)){
+        o.classList.add('disabled');o.onclick=null;
+        if(oi===q.ans) o.classList.add('correct');
+      } else {
+        o.onclick=(e)=>{
+          if(o.classList.contains('disabled'))return;
+          if(e.target.classList.contains('read-btn'))return;
+          attempts.quiz[s]=(attempts.quiz[s]||0)+1;
+          answerQuiz(s,qi,oi,q.ans,qDiv,opts);
+        };
+      }
+      opts.appendChild(o);
+    });
+    // Restore correct feedback label
+    if(restoredCorrect.has(qi)){
+      const fb=document.createElement('div');fb.className='feedback correct';
+      fb.textContent='✅ Correct! +1 pt / נכון! +1 נק׳';qDiv.appendChild(fb);
+    }
+    qDiv.appendChild(opts);container.appendChild(qDiv);
+  });
+}
+
+function readAloud(text){
+  if(!window.speechSynthesis)return;
+  const utt=new SpeechSynthesisUtterance(text);
+  utt.rate=0.7;utt.lang='en-US';
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(utt);
+}
+
+function answerQuiz(s,qi,chosen,correct,qDiv,opts){
+  const optEls=opts.querySelectorAll('.quiz-opt');
+  if(chosen===correct){
+    optEls.forEach((o,i)=>{o.classList.add('disabled');o.onclick=null;if(i===correct)o.classList.add('correct');});
+    addScore(1);
+    if(!quizState[s].correctIndices)quizState[s].correctIndices=[];
+    quizState[s].correctIndices.push(qi);
+    const fb=document.createElement('div');fb.className='feedback correct';
+    fb.textContent='✅ Correct! +1 pt / נכון! +1 נק׳';qDiv.appendChild(fb);
+    quizState[s].answered++;
+    if(quizState[s].answered===quizState[s].total){
+      sectionProgress[s].quiz=true;checkSectionComplete(s);
+    }
+    saveProgress();
+  } else {
+    optEls[chosen].classList.add('wrong');
+    qDiv.querySelectorAll('.feedback.wrong').forEach(f=>f.remove());
+    const fb=document.createElement('div');fb.className='feedback wrong';
+    fb.textContent='❌ Not quite — try again! / לא בדיוק — נסה שוב!';
+    qDiv.appendChild(fb);
+    addPenalty();
+    setTimeout(()=>{optEls[chosen].classList.remove('wrong');fb.remove();},1400);
+  }
+}
+
+// ═══════════════════════════════════════
+// TRANSLATION — flexible keyword matching
+// ═══════════════════════════════════════
+function submitTrans(s){
+  if(completedOnce.trans[s]){
+    alert('You already received points for this translation! 😊 / כבר קיבלת נקודות לתרגום זה!');return;
+  }
+  const input=document.getElementById(`trans${s}-input`).value.trim();
+  const ma=document.getElementById(`ma${s}`);
+  if(!input){alert('Please write a translation! / אנא כתוב תרגום!');return;}
+  attempts.trans[s]=(attempts.trans[s]||0)+1;
+
+  // Normalize: remove punctuation, extra spaces
+  const normalized=input.replace(/[.,!?;:״׳'"\-–—]/g,'').replace(/\s+/g,' ').trim();
+
+  // Require student answer to be at least 4 characters (not gibberish)
+  if(normalized.length < 4){
+    const err=document.createElement('div');err.className='feedback wrong';
+    err.textContent='❌ Please write a full translation! / אנא כתוב תרגום מלא!';
+    ma.parentNode.querySelectorAll('.feedback.wrong').forEach(f=>f.remove());
+    ma.parentNode.insertBefore(err,ma.nextSibling);
+    setTimeout(()=>err.remove(),3000);
+    return;
+  }
+
+  const cfg=TRANS_GROUPS[s];
+  // Count how many groups are matched
+  const matched=cfg.groups.filter(group=>group.some(kw=>normalized.includes(kw)));
+
+  if(matched.length>=cfg.required){
+    // Correct!
+    ma.style.display='block';addScore(2);
+    completedOnce.trans[s]=true;sectionProgress[s].trans=true;checkSectionComplete(s);saveProgress();
+    ma.parentNode.querySelectorAll('.feedback').forEach(f=>f.remove());
+    const ok=document.createElement('div');ok.className='feedback correct';
+    ok.textContent='✅ Great translation! +2 pts / תרגום מצוין! +2 נק׳';
+    ma.parentNode.insertBefore(ok,ma.nextSibling);
+  } else {
+    const err=document.createElement('div');err.className='feedback wrong';
+    err.textContent='❌ Not quite right — make sure your translation includes the main ideas! / בדוק שהתרגום כולל את הרעיונות המרכזיים ונסה שוב!';
+    ma.parentNode.querySelectorAll('.feedback.wrong').forEach(f=>f.remove());
+    ma.parentNode.insertBefore(err,ma.nextSibling);
+    addPenalty();
+    setTimeout(()=>err.remove(),3500);
+  }
+}
+
+// ═══════════════════════════════════════
+// RECORDING — mobile-friendly
+// iOS Safari requires: https, user gesture, and specific constraints
+// ═══════════════════════════════════════
+// ═══════════════════════════════════════
+// RECORDING
+// Works on HTTPS with mic. On non-HTTPS or if mic is denied,
+// shows a "Mark as Done" button so students can still progress.
+// ═══════════════════════════════════════
+function awardRecPoints(id){
+  if(id==='final'){
+    if(!completedOnce.final){addScore(20);completedOnce.final=true;saveProgress();}
+  } else {
+    const secN=parseInt(id.replace(/\D/g,''))||0;
+    const type=id.startsWith('rev')?'revspeak':'speak';
+    if(secN>0){
+      if(!completedOnce[type])completedOnce[type]={};
+      if(!completedOnce[type][secN]){
+        addScore(type==='revspeak'?1:2);completedOnce[type][secN]=true;
+        sectionProgress[secN][type]=true;checkSectionComplete(secN);saveProgress();
+      }
+    }
+  }
+}
+
+function showNoMicFallback(id, reason){
+  const statusEl=document.getElementById(`status-${id}`);
+  const enc=document.getElementById(`enc-${id}`);
+  const isDenied=reason&&(reason.toLowerCase().includes('denied')||reason.toLowerCase().includes('notallowed')||reason.toLowerCase().includes('permission'));
+  if(statusEl){
+    if(isDenied){
+      statusEl.innerHTML='🚫 <strong style="color:var(--coral);">Microphone access was blocked.</strong> To record, please allow microphone access in your browser settings, then reload the page.<br><span style="direction:rtl;display:block;font-size:12px;margin-top:4px;color:rgba(255,150,150,0.9);">הגישה למיקרופון נחסמה. כדי להקליט, אפשר גישה למיקרופון בהגדרות הדפדפן ורענן את הדף.</span>';
+    } else {
+      statusEl.textContent='⚠️ Mic not available / מיקרופון לא זמין';
+    }
+  }
+  // Offer manual "I read it aloud" button so they can still progress
+  const old=document.getElementById(`nomicbtn-${id}`);if(old)old.remove();
+  const btn=document.createElement('button');
+  btn.id=`nomicbtn-${id}`;
+  btn.className='btn btn-gold btn-sm';
+  btn.style='margin-top:10px;';
+  btn.innerHTML='📢 I read it aloud — mark as done / קראתי בקול — סמן כהושלם';
+  btn.onclick=()=>{
+    btn.remove();
+    awardRecPoints(id);
+    if(enc){enc.className='encourage show try';enc.innerHTML='✅ Marked as done! Your teacher may ask you to read aloud in class.<br><span style="font-size:12px;direction:rtl;display:block;">סומן כהושלם! המורה עשויה לבקש ממך לקרוא בקול בכיתה.</span>';}
+  };
+  if(enc) enc.parentNode.insertBefore(btn, enc);
+  else document.getElementById(`status-${id}`).parentNode.appendChild(btn);
+
+  if(reason) console.warn('Mic fallback reason:', reason);
+}
+
+async function startRec(id){
+  if(mediaRecs[id]&&mediaRecs[id].recorder&&mediaRecs[id].recorder.state==='recording')return;
+
+  // Remove any old keep/redo / no-mic buttons
+  const oldKr=document.getElementById(`keepredo-${id}`);if(oldKr)oldKr.remove();
+  const oldNm=document.getElementById(`nomicbtn-${id}`);if(oldNm)oldNm.remove();
+
+  // Only block if getUserMedia is genuinely unavailable
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    showNoMicFallback(id, 'getUserMedia not available');
+    return;
+  }
+
+  const dotEl=document.getElementById(`dot-${id}`);
+  const statusEl=document.getElementById(`status-${id}`);
+  const stopBtn=document.getElementById(`stop-${id}`);
+
+  try{
+    console.log('About to call getUserMedia for', id);
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    console.log('getUserMedia succeeded for', id);
+
+    // Pick best supported MIME type
+    let mimeType='';
+    for(const t of ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4','']){
+      try{if(!t||MediaRecorder.isTypeSupported(t)){mimeType=t;break;}}catch(e){}
+    }
+
+    let recorder;
+    try{recorder=new MediaRecorder(stream, mimeType?{mimeType}:{});}
+    catch(e){recorder=new MediaRecorder(stream);}
+    console.log('MediaRecorder created for', id, recorder.mimeType);
+
+    const chunks=[];
+    recorder.ondataavailable=e=>{if(e.data&&e.data.size>0)chunks.push(e.data);};
+
+    recorder.onstop=()=>{
+      console.log('Recorder stopped for', id, chunks.length);
+      stream.getTracks().forEach(t=>t.stop());
+      if(!chunks.length){
+        showNoMicFallback(id,'Empty chunks after stop');return;
+      }
+      const blobType=recorder.mimeType||mimeType||'audio/webm';
+      const blob=new Blob(chunks,{type:blobType});
+      const url=URL.createObjectURL(blob);
+      const audio=document.getElementById(`playback-${id}`);
+      if(audio){audio.src=url;audio.classList.add('show');}
+      mediaRecs[id]={blob,url,mimeType:blobType};
+      awardRecPoints(id);
+      showKeepOrRedo(id);
+    };
+
+    recorder.start(250);
+    console.log('Recorder started for', id);
+    mediaRecs[id]={recorder,chunks,stream};
+    if(dotEl)dotEl.classList.add('show');
+    if(statusEl)statusEl.textContent='🔴 Recording… / מקליט…';
+    if(stopBtn)stopBtn.disabled=false;
+
+  }catch(err){
+    console.error('Recording failed for', id, err);
+    if(statusEl){
+      statusEl.innerHTML=`❌ Recording failed: ${err.name}: ${err.message}`;
+    }
+    showNoMicFallback(id, err.name+': '+err.message);
+  }
+}
+
+function stopRec(id){
+  const r=mediaRecs[id];
+  if(r&&r.recorder&&r.recorder.state==='recording'){
+    r.recorder.stop();
+    const dotEl=document.getElementById(`dot-${id}`);if(dotEl)dotEl.classList.remove('show');
+    const statusEl=document.getElementById(`status-${id}`);if(statusEl)statusEl.textContent='⏹ Stopped — listen below / עצר — האזן למטה';
+    const stopBtn=document.getElementById(`stop-${id}`);if(stopBtn)stopBtn.disabled=true;
+  }
+}
+
+function showKeepOrRedo(id){
+  const old=document.getElementById(`keepredo-${id}`);if(old)old.remove();
+  const audio=document.getElementById(`playback-${id}`);
+  if(!audio||!audio.src||audio.src===window.location.href)return; // no src set
+  const wrap=document.createElement('div');wrap.id=`keepredo-${id}`;
+  wrap.style='display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px;padding:10px;background:rgba(5,13,26,0.5);border-radius:10px;';
+  wrap.innerHTML=`<span style="font-size:13px;color:var(--mint);font-weight:700;width:100%;">🎧 Listen back, then: / האזן ואז בחר:</span>
+    <button class="btn btn-primary btn-sm" onclick="keepRec('${id}')">✅ Keep / שמור</button>
+    <button class="btn btn-coral btn-sm" onclick="redoRec('${id}')">🔄 Re-record / הקלט שוב</button>
+    <button class="btn btn-gold btn-sm" onclick="downloadRec('${id}')">⬇️ Download / הורד</button>`;
+  audio.insertAdjacentElement('afterend', wrap);
+}
+
+function downloadRec(id){
+  const rec=mediaRecs[id];
+  if(!rec||!rec.blob){alert('No recording found. / לא נמצאה הקלטה.');return;}
+  const ext=rec.mimeType&&rec.mimeType.includes('mp4')?'m4a':rec.mimeType&&rec.mimeType.includes('ogg')?'ogg':'webm';
+  const name=document.getElementById('student-name').value||'student';
+  const a=document.createElement('a');
+  a.href=rec.url;
+  a.download=`atlantis-${name.replace(/\s+/g,'-')}-${id}.${ext}`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
+function keepRec(id){
+  const wrap=document.getElementById(`keepredo-${id}`);if(wrap)wrap.remove();
+  const enc=document.getElementById(`enc-${id}`);
+  if(enc){enc.className='encourage show try';enc.innerHTML='✅ Recording kept! Your teacher will listen and grade it.<br><span style="font-size:12px;direction:rtl;display:block;margin-top:4px;">ההקלטה נשמרה! המורה תאזין ותדרג.</span>';}
+}
+
+function redoRec(id){
+  const wrap=document.getElementById(`keepredo-${id}`);if(wrap)wrap.remove();
+  const audio=document.getElementById(`playback-${id}`);
+  if(audio){audio.src='';audio.classList.remove('show');}
+  const enc=document.getElementById(`enc-${id}`);if(enc){enc.className='encourage';enc.textContent='';}
+  const statusEl=document.getElementById(`status-${id}`);if(statusEl)statusEl.textContent='Press Record to start / לחץ הקלט להתחיל';
+  const stopBtn=document.getElementById(`stop-${id}`);if(stopBtn)stopBtn.disabled=true;
+  mediaRecs[id]={};
+}
+
+// ═══════════════════════════════════════
+// GAMES
+// ═══════════════════════════════════════
+function buildGame1(){
+  const pairs=VOCAB[1];
+  const cards=[];
+  pairs.forEach(p=>{cards.push({id:p.en,text:p.en,side:'en'});cards.push({id:p.en,text:p.he,side:'he'});});
+  cards.sort(()=>Math.random()-0.5);
+  const grid=document.getElementById('game1-grid');
+  let flipped=[],matched=new Set(),canFlip=true;
+  cards.forEach((c,i)=>{
+    const el=document.createElement('div');el.className='fc';el.textContent='?';el.dataset.id=c.id;
+    el.onclick=()=>{
+      if(!canFlip||el.classList.contains('fc-flipped')||el.classList.contains('fc-matched'))return;
+      el.textContent=c.text;el.classList.add('fc-flipped');flipped.push({el,c});
+      if(flipped.length===2){
+        canFlip=false;
+        const [a,b]=flipped;
+        if(a.c.id===b.c.id&&a.c.side!==b.c.side){
+          a.el.classList.remove('fc-flipped');b.el.classList.remove('fc-flipped');
+          a.el.classList.add('fc-matched');b.el.classList.add('fc-matched');
+          matched.add(a.c.id);flipped=[];canFlip=true;addScore(1);
+          document.getElementById('game1-score').textContent=`Pairs: ${matched.size}/5 (+3 pts each!) ${matched.size===5?'🎉 All done!':''}`;
+        } else {
+          setTimeout(()=>{
+            a.el.classList.add('fc-wrong');b.el.classList.add('fc-wrong');
+            setTimeout(()=>{
+              a.el.textContent='?';b.el.textContent='?';
+              a.el.classList.remove('fc-flipped','fc-wrong');b.el.classList.remove('fc-flipped','fc-wrong');
+              flipped=[];canFlip=true;
+            },400);
+          },800);
+        }
+      }
+    };
+    grid.appendChild(el);
+  });
+}
+
+function buildGame2(){
+  const words=VOCAB[2].map(p=>p.en);
+  const word=words[Math.floor(Math.random()*words.length)];
+  let scrambled=word.split('').sort(()=>Math.random()-0.5).join('');
+  if(scrambled===word) scrambled=word.split('').reverse().join('');
+  const c=document.getElementById('game2-content');
+  c.innerHTML=`<div class="scramble-word">${scrambled.toUpperCase()}</div>
+    <p style="font-size:12px;color:var(--mint);text-align:center;margin-bottom:10px;">Unscramble this Section 2 word! / פענח את המילה הזו מחלק 2!</p>
+    <input type="text" class="scramble-input" id="scramble2-input" placeholder="Type your answer..." autocomplete="off">
+    <div class="flex-gap mt8" style="justify-content:center;">
+      <button class="btn btn-primary btn-sm" onclick="checkScramble('${word}')">Check ✓ / בדוק</button>
+    </div><div id="scramble2-fb" class="mt8"></div>`;
+}
+
+function checkScramble(ans){
+  const val=document.getElementById('scramble2-input').value.trim().toLowerCase();
+  const fb=document.getElementById('scramble2-fb');
+  if(val===ans.toLowerCase()){
+    fb.innerHTML=`<div class="feedback correct">🎉 Correct! "${ans}" +5 pts / נכון! +5 נק׳</div>`;
+    addScore(1);saveProgress();document.getElementById('scramble2-input').disabled=true;
+  } else {
+    fb.innerHTML=`<div class="feedback wrong">❌ Try again! / נסה שוב!</div>`;
+  }
+}
+
+function buildGame3(){
+  const statements=[
+    {s:"Atlantis disappeared into the sea.",ans:true},
+    {s:"Atlantis was located north of Spain.",ans:false},
+    {s:"The island disappeared suddenly.",ans:true},
+    {s:"We know exactly where Atlantis is.",ans:false},
+  ];
+  const c=document.getElementById('game3-content');
+  statements.forEach((st,i)=>{
+    const div=document.createElement('div');div.style='margin-bottom:12px;';
+    div.innerHTML=`<div style="font-size:14px;color:var(--white);font-weight:700;margin-bottom:6px;">"${st.s}"</div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-primary btn-sm" onclick="checkTF(this,${st.ans},true,${i})">✅ True / נכון</button>
+        <button class="btn btn-coral btn-sm" onclick="checkTF(this,${st.ans},false,${i})">❌ False / לא נכון</button>
+      </div><div id="tf-fb${i}" class="mt8"></div>`;
+    c.appendChild(div);
+  });
+}
+
+function checkTF(btn,correct,chosen,i){
+  const fb=document.getElementById(`tf-fb${i}`);
+  btn.parentNode.querySelectorAll('button').forEach(b=>b.disabled=true);
+  if(chosen===correct){fb.innerHTML=`<div class="feedback correct">✅ Correct! +1 pt</div>`;addScore(1);saveProgress();}
+  else{fb.innerHTML=`<div class="feedback wrong">❌ The answer was ${correct?'True / נכון':'False / לא נכון'}.</div>`;}
+}
+
+function buildGame4(){
+  const pool=[...VOCAB[4]].sort(()=>Math.random()-0.5).slice(0,4);
+  const c=document.getElementById('game4-content');
+  c.innerHTML=`<p style="font-size:12px;color:var(--mint);margin-bottom:12px;text-align:center;">Click English then Hebrew match / לחץ על אנגלית ואחר כך על תואמתה בעברית</p>`;
+  const grid=document.createElement('div');grid.style='display:grid;grid-template-columns:1fr 1fr;gap:8px;';
+  const heShuf=[...pool].sort(()=>Math.random()-0.5);
+  let selEn=null;const matched4=new Set();
+  pool.forEach(p=>{
+    const en=document.createElement('div');en.className='vocab-item vocab-en';en.style='font-size:13px;';en.textContent=p.en;
+    en.onclick=()=>{
+      if(matched4.has(p.en))return;
+      grid.querySelectorAll('.vocab-en.selected').forEach(e=>e.classList.remove('selected'));
+      selEn=p.en;en.classList.add('selected');
+    };grid.appendChild(en);
+  });
+  heShuf.forEach(p=>{
+    const he=document.createElement('div');he.className='vocab-item vocab-he';he.style='font-size:13px;';he.textContent=p.he;
+    he.onclick=()=>{
+      if(!selEn||matched4.has(selEn))return;
+      if(selEn===p.en){
+        matched4.add(selEn);
+        grid.querySelectorAll('.vocab-en').forEach(e=>{if(e.textContent===p.en){e.classList.remove('selected');e.classList.add('matched');}});
+        he.classList.add('matched');selEn=null;
+        if(matched4.size===pool.length){c.insertAdjacentHTML('beforeend','<div class="feedback correct" style="margin-top:10px;">🎉 All matched! +2 pts</div>');addScore(2);saveProgress();}
+      } else {
+        he.classList.add('wrong');setTimeout(()=>he.classList.remove('wrong'),600);
+        grid.querySelectorAll('.vocab-en.selected').forEach(e=>e.classList.remove('selected'));selEn=null;
+      }
+    };grid.appendChild(he);
+  });
+  c.appendChild(grid);
+}
+
+// ═══════════════════════════════════════
+// FEEDBACK
+// ═══════════════════════════════════════
+function flashFeedback(id,msg,type){
+  const el=document.getElementById(id);if(!el)return;
+  if(!msg){el.innerHTML='';return;}
+  el.innerHTML=`<div class="feedback ${type}">${msg}</div>`;
+}
+
+// ═══════════════════════════════════════
+// SCORE & HUD
+// ═══════════════════════════════════════
+function addScore(pts){score+=pts;updateHUD();saveProgress();}
+function addPenalty(){penalties+=1;updateHUD();saveProgress();}
+
+function updateHUD(){
+  const net=Math.max(0,score-penalties);
+  document.getElementById('score-display').textContent=net;
+  document.getElementById('cur-section').textContent=currentSection;
+  document.getElementById('progress-bar').style.width=((currentSection-1)/4*100)+'%';
+  for(let i=1;i<=4;i++){
+    document.getElementById(`dot${i}`).className='dot'+(i<currentSection?' done':i===currentSection?' active':'');
+  }
+}
+
+function checkSectionComplete(s){
+  const p=sectionProgress[s];
+  const required=['vocab','listen','cloze','quiz','listen2','trans','speak','revspeak'];
+  const allDone=required.every(k=>p[k]);
+  const btn=document.getElementById(`next${s}`);
+  if(!btn)return;
+  if(allDone){
+    if(s<4) btn.classList.add('show');
+    else btn.classList.add('show');
+  }
+}
+
+function tryGoSection(s){
+  // Check if current section (s-1) is fully complete before allowing advance
+  const prev=s-1;
+  const p=sectionProgress[prev];
+  const required=['vocab','listen','cloze','quiz','listen2','trans','speak','revspeak'];
+  const missing=required.filter(k=>!p[k]);
+  if(missing.length>0){
+    const labels={'vocab':'Vocabulary match','listen':'First listening + slider','cloze':'Fill in the blanks','quiz':'Quick quiz','listen2':'Second listening (required)','trans':'Translation','speak':'Reading recording','revspeak':'Reverse speaking'};
+    const heb={'vocab':'התאמת אוצר מילים','listen':'האזנה ראשונה + פס גלילה','cloze':'מילוי חסרים','quiz':'חידון','listen2':'האזנה שנייה (נדרשת)','trans':'תרגום','speak':'הקלטת קריאה','revspeak':'דיבור הפוך'};
+    const list=missing.map(k=>`• ${labels[k]} / ${heb[k]}`).join('\n');
+    alert(`Please complete these activities first:\nאנא השלם את הפעילויות הבאות קודם:\n\n${list}`);
+    return;
+  }
+  goSection(s);
+}
+
+function goSection(s){
+  // Hide all sections, show only target — preserves all DOM content/state
+  for(let i=1;i<=4;i++) document.getElementById(`sec${i}`).classList.remove('active');
+  document.getElementById(`sec${s}`).classList.add('active');
+  currentSection=s;updateHUD();saveProgress();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function goBack(s){
+  // Navigate backwards without any validation
+  for(let i=1;i<=4;i++) document.getElementById(`sec${i}`).classList.remove('active');
+  document.getElementById(`sec${s}`).classList.add('active');
+  currentSection=s;updateHUD();saveProgress();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ═══════════════════════════════════════
+// MISSION COMPLETE + REPORT CARD
+// ═══════════════════════════════════════
+function completeMission(){
+  // Require final recording
+  if(!mediaRecs['final']||!mediaRecs['final'].url){
+    const msg=document.getElementById('final-rec-required-msg');
+    if(msg){msg.style.display='block';msg.scrollIntoView({behavior:'smooth',block:'center'});}
+    else{alert('Please record the Grand Finale first!\nאנא הקלט את הסיומת הגדולה תחילה!');}
+    return;
+  }
+  document.getElementById('sec4').classList.remove('active');
+  document.getElementById('mission-complete').classList.add('show');
+
+  const name=document.getElementById('student-name').value||'Student';
+  const rawScore=score;
+  const totalPenalties=penalties;
+  const netScore=Math.max(0,rawScore-totalPenalties);
+  // Stars
+  let stars='⭐',finalMsg='Keep practicing — you\'re getting stronger every day! / המשך להתאמן — אתה מתקדם כל יום!';
+  if(netScore>=90){stars='⭐⭐⭐';finalMsg='🌊 Outstanding! You conquered Atlantis! / מדהים! כבשת את אטלנטיס!';}
+  else if(netScore>=70){stars='⭐⭐';finalMsg='💪 Great work, language explorer! / עבודה נהדרת, חוקר שפות!';}
+  document.getElementById('final-score-display').textContent=netScore+' / 100';
+  document.getElementById('stars-display').textContent=stars;
+  document.getElementById('final-msg').textContent=finalMsg;
+
+  const maxPossible=100;
+  const pct=Math.min(100,Math.round((netScore/maxPossible)*100));
+  document.getElementById('score-100-display').textContent=`${pct}/100 (${netScore} net pts)`;
+
+  // Report rows
+  const rows=document.getElementById('report-rows');
+  rows.innerHTML='';
+  const addRow=(label,val)=>{
+    const r=document.createElement('div');r.className='report-row';
+    r.innerHTML=`<span class="report-label">${label}</span><span class="report-val">${val}</span>`;rows.appendChild(r);
+  };
+  addRow('Student / תלמיד',name);
+  addRow('Date / תאריך',new Date().toLocaleDateString('en-IL'));
+  addRow('Raw Score / ציון גולמי',`${rawScore}/100 pts`);
+  addRow('Penalties / קנסות',`-${totalPenalties} pts (${Math.round(totalPenalties)} wrong answers)`);
+  addRow('Net Score / ציון נטו',`${netScore}/100`);
+  addRow('Final Grade / ציון סופי',`${pct}/100`);
+  addRow('Stars / כוכבים',stars);
+
+  let actSummary=[];
+  for(let s=1;s<=4;s++){
+    const p=sectionProgress[s];
+    const done=[];
+    if(p.vocab)done.push('Vocab ✓');
+    if(p.listen)done.push('Listening ✓');
+    if(p.cloze)done.push('Cloze ✓');
+    if(p.quiz)done.push('Quiz ✓');
+    if(p.trans)done.push('Translation ✓');
+    if(p.speak)done.push('Reading ✓');
+    if(p.revspeak)done.push('Reverse ✓');
+    addRow(`Section ${s}`,done.join(' | ')||'Not completed');
+    actSummary.push(`Section ${s}: ${done.join(', ')||'—'}`);
+  }
+  addRow('Vocab match attempts',Object.values(attempts.vocab).reduce((a,b)=>a+b,0));
+  addRow('Quiz attempts',Object.values(attempts.quiz).reduce((a,b)=>a+b,0));
+  addRow('Translation attempts',Object.values(attempts.trans).reduce((a,b)=>a+b,0));
+
+  // Final recording section in report
+  const finalRec=mediaRecs['final'];
+  const finalAudio=document.getElementById('final-playback-report');
+  if(finalRec&&finalRec.url){
+    finalAudio.src=finalRec.url;finalAudio.style.display='block';
+    document.getElementById('no-final-rec').style.display='none';
+    // Show download button for final recording
+    const oldDlBtn=document.getElementById('final-rec-download');if(oldDlBtn)oldDlBtn.remove();
+    const dlBtn=document.createElement('button');
+    dlBtn.id='final-rec-download';dlBtn.className='btn btn-gold btn-sm';dlBtn.style='margin-top:8px;';
+    dlBtn.innerHTML='⬇️ Download Final Recording / הורד הקלטה סופית';
+    dlBtn.onclick=()=>downloadRec('final');
+    finalAudio.insertAdjacentElement('afterend',dlBtn);
+  } else {
+    finalAudio.style.display='none';
+    document.getElementById('no-final-rec').style.display='block';
+  }
+
+  // Share text
+  const shareText=`📊 ATLANTIS MISSION REPORT — TEACHER COPY
+══════════════════════════════
+Student: ${name}
+Date: ${new Date().toLocaleDateString('en-IL')}
+Raw Score: ${rawScore}/100 pts
+Penalties: -${totalPenalties} pts (${Math.round(totalPenalties)} wrong answers)
+Net Score: ${netScore}/100
+Final Grade: ${pct}/100 | ${stars}
+${finalMsg}
+
+Activities Completed:
+${actSummary.join('\n')}
+
+Vocab attempts: ${Object.values(attempts.vocab).reduce((a,b)=>a+b,0)}
+Quiz attempts: ${Object.values(attempts.quiz).reduce((a,b)=>a+b,0)}
+Translation attempts: ${Object.values(attempts.trans).reduce((a,b)=>a+b,0)}
+══════════════════════════════
+📎 Note: The final voice recording must be downloaded and attached manually.
+הקלטת הקול הסופית יש להוריד ולצרף ידנית להודעה.`;
+  document.getElementById('share-text').value=shareText;
+
+  document.getElementById('progress-bar').style.width='100%';
+  for(let i=1;i<=4;i++)document.getElementById(`dot${i}`).className='dot done';
+  window.scrollTo({top:0,behavior:'smooth'});
+  saveProgress();
+}
+
+function copyReport(){
+  const ta=document.getElementById('share-text');
+  ta.select();
+  try{navigator.clipboard.writeText(ta.value);}catch(e){document.execCommand('copy');}
+  document.getElementById('copy-ok').style.display='block';
+  setTimeout(()=>document.getElementById('copy-ok').style.display='none',2500);
+}
+
+function sendWhatsApp(){
+  const note=document.getElementById('email-note');
+  const name=document.getElementById('student-name').value||'Student';
+  const report=document.getElementById('share-text').value;
+  const phone='972587484825';
+  // WhatsApp limits pre-filled text to ~4000 chars; be safe
+  const maxLen=1600;
+  const text=report.length>maxLen?report.substring(0,maxLen)+'\n...[see student screen for full report]':report;
+  const waUrl=`https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+  window.open(waUrl,'_blank');
+  note.style.display='block';
+  note.innerHTML=`💬 WhatsApp should open with the report ready to send — just press <strong>Send</strong>!<br>
+    <span style="direction:rtl;display:block;margin-top:4px;">וואטסאפ ייפתח עם הדוח מוכן לשליחה — לחץ שלח!</span><br>
+    <small style="color:rgba(255,200,100,0.85);">⚠️ <strong>Note about voice recording:</strong> WhatsApp can only send the text report automatically. 
+    The final voice recording <strong>must be downloaded separately</strong> using the Download button above, then attached manually to the WhatsApp message or sent in a separate message.<br>
+    <span style="direction:rtl;display:block;margin-top:4px;">הודעת וואטסאפ שולחת רק את הדוח הטקסטואלי. יש להוריד את ההקלטה הקולית הסופית בנפרד באמצעות כפתור ההורדה ולצרפה ידנית.</span></small>`;
+}
+</script>
+</body>
+</html>
